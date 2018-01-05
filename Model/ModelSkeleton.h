@@ -25,10 +25,10 @@ public:
 	
 	int GetBoneCount() { return boneCount; }
 
-	void UpdateAnimation(ModelAnimationController* animationController);
+	void UpdateAnimation(ModelAnimationController* animationController, bool isRootBoneLock);
 
 private:
-	void BuildBoneTransforms(ModelAnimationController* animationController, wstring animationName);
+	void BuildBoneTransforms(ModelAnimationController* animationController, wstring animationName, bool isRootBoneLock);
 
 	typedef pair<wstring, ModelSkeletonBone *> Pair;
 	vector<Pair> skeletonBones;

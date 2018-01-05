@@ -59,7 +59,7 @@ ModelSkeletonBone * ModelSkeleton::GetSkeletonBone(int index)
 	return skeletonBones[index].second;
 }
 
-void ModelSkeleton::UpdateAnimation(ModelAnimationController * animationController)
+void ModelSkeleton::UpdateAnimation(ModelAnimationController * animationController, bool isRootBoneLock)
 {
 	ModelAnimation* currentAnimation = animationController->GetCurrentAnimation();
 	int keyFrame = animationController->GetCurrentKeyFrame();
@@ -67,15 +67,15 @@ void ModelSkeleton::UpdateAnimation(ModelAnimationController * animationControll
 	if (currentAnimation == NULL)
 		return;
 
-	BuildBoneTransforms(animationController, currentAnimation->GetName());
+	BuildBoneTransforms(animationController, currentAnimation->GetName(), isRootBoneLock);
 }
 
-void ModelSkeleton::BuildBoneTransforms(ModelAnimationController * animationController, wstring animationName)
+void ModelSkeleton::BuildBoneTransforms(ModelAnimationController * animationController, wstring animationName, bool isRootBoneLock)
 {
 	if (skinTransforms == NULL)
 		skinTransforms = new D3DXMATRIX[boneCount];
 
-	if (boneAnimationTransforms == NULL)	
+	if (boneAnimationTransforms == NULL)
 		boneAnimationTransforms = new D3DXMATRIX[boneCount];
 
 
@@ -132,7 +132,12 @@ void ModelSkeleton::BuildBoneTransforms(ModelAnimationController * animationCont
 		if (parentBoneIndex < 0)
 		{
 			D3DXMatrixIdentity(&matParentAnimation);
-			matAnimation = animatiokeyFrames->GetKeyFrameTransform(0);
+
+			// 애니메이션의 RootBoneLock 설정에 따른 애니메이션 조정
+			if(isRootBoneLock == true)
+				matAnimation = animatiokeyFrames->GetKeyFrameTransform(0);
+			else
+				matAnimation = animatiokeyFrames->GetKeyFrameTransform(keyFrame);
 		}
 		else
 			matParentAnimation = boneAnimationTransforms[parentBoneIndex];

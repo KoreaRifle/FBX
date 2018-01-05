@@ -58,3 +58,7 @@ using namespace fbxsdk;
 #include "./Utility/String.h"
 #include "./Utility/BinaryFile.h"
 #include "./Utility/Mesh.h"
+
+#define CAMERA Camera::Get()
+#define KEYBOARD Keyboard::Get()
+#define MOUSE Mouse::Get()

@@ -37,9 +37,11 @@ void ModelPart::Update(bool isAnimation)
 	else
 		offset = model->GetGeometricOffset();
 
-	world = offset * world;
+	//world = offset * world;
 
-	worldBuffer->SetWorld(world);
+	D3DXMATRIX testWorld = offset * world;
+
+	worldBuffer->SetWorld(world * offset);
 
 	Shader::Update();
 }

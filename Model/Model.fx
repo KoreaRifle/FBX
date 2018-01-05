@@ -48,7 +48,7 @@ PixelInput VS(VertexInput input)
 
     if (_skinning == 0)
     {
-        output.position = mul(input.position, _world);
+        output.position = input.position;
         output.normal = mul(input.normal, (float3x3) _world);
         output.normal = normalize(output.normal);
     }
@@ -65,6 +65,7 @@ PixelInput VS(VertexInput input)
     }
     
     output.position = mul(output.position, _boneScale);
+    output.position = mul(output.position, _world);
     output.position = mul(output.position, _view);
     output.position = mul(output.position, _projection);    
 

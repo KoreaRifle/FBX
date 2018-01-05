@@ -35,5 +35,6 @@ private:
 
 	D3DXMATRIX world;
 
-	float tempX;
+	D3DXVECTOR3 location;
+	D3DXVECTOR3 rotation;
 };

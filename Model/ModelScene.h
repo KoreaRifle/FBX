@@ -80,4 +80,13 @@ private:
 	ModelAnimationController* animationController;
 
 	wstring animationFileName;
+
+
+public:
+	void SetRootFilePath(wstring rootFilePath) { this->rootFilePath = rootFilePath; }
+	void SetRootBoneLock(bool isRootBoneLock) { this->isRootBoneLock = isRootBoneLock; }
+
+private:
+	wstring rootFilePath;
+	bool isRootBoneLock;
 };

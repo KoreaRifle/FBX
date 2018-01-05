@@ -43,6 +43,8 @@ ModelScene::ModelScene()
 	skeleton = NULL;
 	//animationController = NULL;
 	animationController = new ModelAnimationController();
+
+	isRootBoneLock = true;
 }
 
 ModelScene::~ModelScene()
@@ -77,7 +79,7 @@ void ModelScene::Update()
 
 			if (skeleton != NULL)
 			{
-				skeleton->UpdateAnimation(animationController);
+				skeleton->UpdateAnimation(animationController, isRootBoneLock);
 			}
 
 			for each(Model* model in models)
@@ -164,6 +166,18 @@ void ModelScene::LoadScene(wstring file, bool isMaterial, bool isSkeleton, bool 
 
 void ModelScene::SetCurrentAnimation(wstring filePath)
 {
+	string tempOriginFilePath = String::WStringToString(filePath);
+
+	wstring tempRootFilePath = rootFilePath;
+	tempRootFilePath += L"sword and shield idle.fbx";
+	string tempFullFilePath = String::WStringToString(tempRootFilePath);
+
+	// filePath°¡ idle.fbx ÀÏ¶§ isRootBoneLockÀ» false·Î ¹Ù²ãÁÜ
+	if(tempOriginFilePath == tempFullFilePath)
+		isRootBoneLock = false;
+	else
+		isRootBoneLock = true;
+
 	animationController->SetCurrentAnimation(filePath);
 	animationController->Play();
 }

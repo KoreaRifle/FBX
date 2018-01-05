@@ -17,9 +17,6 @@ void GameMain::Initialize()
 
 	wstring filePath = L"./Contents/Models/Sword and Shield Pack/";
 
-	//model = new ModelScene(L"./Contents/Models/Box.fbx");
-	//model = new ModelScene(L"./Contents/Models/Rock_01.fbx");
-
 	tPosePath = filePath + L"paladin_prop_j_nordstrom.fbx";
 	idlePath  = filePath + L"sword and shield idle.fbx";
 	runPath = filePath + L"sword and shield run.fbx";
@@ -28,6 +25,8 @@ void GameMain::Initialize()
 	isMoving = isAttack = isTrigger = false;
 
 	model = new ModelScene();
+
+	model->SetRootFilePath(filePath);
 
 	model->LoadScene(tPosePath, true, true, true, false);
 	model->LoadScene(idlePath, false, false, false, true);
@@ -39,7 +38,12 @@ void GameMain::Initialize()
 
 	D3DXMatrixIdentity(&world);
 
-	tempX = 0.0f;
+	location = D3DXVECTOR3(0, 0, 0);
+	rotation = D3DXVECTOR3(0, 0, 0);
+
+	UserInterface::Get()->AddFbxModelTransloate(&location.x, &location.y, &location.z);
+
+	// TODO : 캐릭터 회전 필요
 }
 
 void GameMain::Destroy()
@@ -56,25 +60,26 @@ void GameMain::Destroy()
 
 void GameMain::Update()
 {
-	if (Keyboard::Get()->KeyPress(VK_UP))
-		Camera::Get()->MoveForward();
-	else if (Keyboard::Get()->KeyPress(VK_DOWN))
-		Camera::Get()->MoveBackward();
+	if (KEYBOARD->KeyPress(VK_UP))
+		CAMERA->MoveForward();
+	else if (KEYBOARD->KeyPress(VK_DOWN))
+		CAMERA->MoveBackward();
 
-	if (Keyboard::Get()->KeyPress(VK_LEFT))
-		Camera::Get()->MoveLeft();
-	else if (Keyboard::Get()->KeyPress(VK_RIGHT))
-		Camera::Get()->MoveRight();
+	if (KEYBOARD->KeyPress(VK_LEFT))
+		CAMERA->MoveLeft();
+	else if (KEYBOARD->KeyPress(VK_RIGHT))
+		CAMERA->MoveRight();
 
-	if (Keyboard::Get()->KeyPress('E'))
-		Camera::Get()->MoveUp();
-	else if (Keyboard::Get()->KeyPress('Q'))
-		Camera::Get()->MoveDown();
+	if (KEYBOARD->KeyPress('E'))
+		CAMERA->MoveUp();
+	else if (KEYBOARD->KeyPress('Q'))
+		CAMERA->MoveDown();
 
 	// W 누르면 캐릭터가 앞으로 움직이는 애니메이션 동작
 	if (isAttack == false)
 	{
-		if (Keyboard::Get()->KeyPress('W') || Keyboard::Get()->KeyPress('S'))
+		// Forward, Backward
+		if (KEYBOARD->KeyPress('W') || KEYBOARD->KeyPress('S'))
 		{
 			isMoving = true;
 			if (isTrigger == false)
@@ -83,41 +88,59 @@ void GameMain::Update()
 				model->SetCurrentAnimation(runPath);
 			}
 
-			D3DXMatrixTranslation(&world, tempX, 0.0f, 0.0f);
-			
-			model->SetWorldTransform(world);
+			if (KEYBOARD->KeyPress('W'))
+				location.z++;
+			if (KEYBOARD->KeyPress('S'))
+				location.z--;
 		}
-		else if (Keyboard::Get()->KeyUp('W') || Keyboard::Get()->KeyUp('S'))
+		// Right, Left
+		if (KEYBOARD->KeyPress('A') || KEYBOARD->KeyPress('D'))
+		{
+			isMoving = true;
+			if (isTrigger == false)
+			{
+				isTrigger = true;
+				model->SetCurrentAnimation(runPath);
+			}
+
+			if (KEYBOARD->KeyPress('D'))
+				location.x++;
+			if (KEYBOARD->KeyPress('A'))
+				location.x--;
+		}
+		// 키 입력 중지 상태
+		if (KEYBOARD->KeyUp('W') || KEYBOARD->KeyUp('S') || KEYBOARD->KeyUp('A') || KEYBOARD->KeyUp('D'))
 		{
 			isMoving = false;
 			isTrigger = false;
 			model->SetCurrentAnimation(idlePath);
 		}
-	}
 
-	tempX++;
-	
+		D3DXMatrixTranslation(&world, location.x, location.y, location.z);
+
+		model->SetWorldTransform(world);
+	}
 
 	// 마우스 좌클릭 시 공격하는 애니메이션 동작
 	if (isMoving == false)
 	{
-		if (Mouse::Get()->ButtonDown(0))
+		if (MOUSE->ButtonDown(0))
 		{
 			isAttack = true;
 			model->SetCurrentAnimation(attackPath);
 		}
-		else if (Mouse::Get()->ButtonUp(0))
+		else if (MOUSE->ButtonUp(0))
 		{
 			isAttack = false;
 			model->SetCurrentAnimation(idlePath);
 		}
 	}
 
-	if (Mouse::Get()->ButtonPress(1))
+	if (MOUSE->ButtonPress(1))
 	{
-		D3DXVECTOR3 move = Mouse::Get()->GetMoveValue();
+		D3DXVECTOR3 move = MOUSE->GetMoveValue();
 
-		Camera::Get()->Rotate(D3DXVECTOR2(move.y, move.x));
+		CAMERA->Rotate(D3DXVECTOR2(move.y, move.x));
 	}
 
 	skydome->Update();
@@ -125,7 +148,7 @@ void GameMain::Update()
 
 	model->Update();
 
-	Camera::Get()->Update();
+	CAMERA->Update();
 }
 
 void GameMain::PreRender()
@@ -141,7 +164,7 @@ void GameMain::PreRender()
 void GameMain::Render()
 {
 	skydome->Render();
-	//landscape->Render();
+	landscape->Render();
 
 	//Rasterizer::Get()->SetWireframe();
 	model->Render();
