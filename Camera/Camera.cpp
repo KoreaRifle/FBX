@@ -7,7 +7,7 @@ const float Camera::screenNear = 0.1f;
 const float Camera::screenDepth = 1000.0f;
 
 Camera::Camera()
-	: position(1.7f, 30, -127)
+	: position(6.0f, 18.0f, -44.0f)
 	, forward(0, 0, 0), right(0, 0, 0), up(0, 0, 0)
 	, rotate(0, 0)
 	, translationSpeed(100.0f), rotationSpeed(2.5f)

@@ -130,7 +130,10 @@ void ModelSkeleton::BuildBoneTransforms(ModelAnimationController * animationCont
 		int parentBoneIndex = bone->GetParentBoneIndex();
 
 		if (parentBoneIndex < 0)
+		{
 			D3DXMatrixIdentity(&matParentAnimation);
+			matAnimation = animatiokeyFrames->GetKeyFrameTransform(0);
+		}
 		else
 			matParentAnimation = boneAnimationTransforms[parentBoneIndex];
 

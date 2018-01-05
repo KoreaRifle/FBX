@@ -22,6 +22,8 @@ public:
 		return material;
 	}
 
+	void SetWorldTransform(D3DXMATRIX& world);
+
 private:
 	Model* model;
 
@@ -43,4 +45,7 @@ private:
 	ModelMaterial* material;
 
 	bool isSkinnedModel;
+
+private:
+	D3DXMATRIX world;
 };

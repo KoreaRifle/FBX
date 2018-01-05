@@ -13,8 +13,9 @@ public:
 	~ModelScene();
 
 	void LoadScene(wstring file, bool isMaterial, bool isSkeleton, bool isMesh, bool isAnimation);
-
 	void SetCurrentAnimation(wstring filePath);
+
+	void SetWorldTransform(D3DXMATRIX& world);
 
 	void Update();
 	void Render();
@@ -79,5 +80,4 @@ private:
 	ModelAnimationController* animationController;
 
 	wstring animationFileName;
-
 };

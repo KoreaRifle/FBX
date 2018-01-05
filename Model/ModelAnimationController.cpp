@@ -117,12 +117,18 @@ void ModelAnimationController::Update()
 	if (currentAnimation == NULL || animationMode != AnimationMode::Play)
 		return;
 
-
+	/*
+		frameTimer : 애니메이션 총 구동 시간 (???)
+		invFrameRate : 현재 동작하는 애니메이션의 구동 시간 (???)
+		currentKeyFrame : 현재 프레임 구간, 매 업데이트시 1씩 증가함
+		nextKeyFrame : 다음 키프레임 구간
+	*/
 	frameTimer += Frames::TimeElapsed();
 
 	float invFrameRate = 1.0f / currentAnimation->GetFrameRate();
 	while (frameTimer > invFrameRate)
 	{
+		int test = currentAnimation->GetKeyFrames();
 		currentKeyFrame = (currentKeyFrame + 1) % currentAnimation->GetKeyFrames();
 		nextKeyFrame = (currentKeyFrame + 1) % currentAnimation->GetKeyFrames();
 		
@@ -130,4 +136,5 @@ void ModelAnimationController::Update()
 	}
 
 	keyFrameFactor = frameTimer / invFrameRate;
+	int a = 0;
 }

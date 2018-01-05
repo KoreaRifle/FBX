@@ -86,6 +86,12 @@ void Model::CreateBuffer()
 		part->CreateBuffer();
 }
 
+void Model::SetWorldTransform(D3DXMATRIX & world)
+{
+	for each(ModelPart* part in parts)
+		part->SetWorldTransform(world);
+}
+
 void Model::UpdateAnimation(ModelAnimationController * animationController)
 {
 	if (animationController != NULL)

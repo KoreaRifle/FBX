@@ -11,6 +11,8 @@ ModelPart::ModelPart(Model* model, ModelMaterial* material, ModelBuffer* modelBu
 	, vertexBuffer(NULL), indexBuffer(NULL)
 {
 	CreateInputLayout(VertexTextureNormalBlend ::desc, VertexTextureNormalBlend::count);
+
+	D3DXMatrixIdentity(&world);
 }
 
 ModelPart::~ModelPart()
@@ -24,16 +26,18 @@ ModelPart::~ModelPart()
 
 void ModelPart::Update(bool isAnimation)
 {
-	D3DXMATRIX world;
+	D3DXMATRIX offset;
 	if (isAnimation == true)
 	{
 		if (isSkinnedModel == true)
-			world = model->GetGeometricOffset();
+			offset = model->GetGeometricOffset();
 		else
-			world = model->GetGeometricOffset() * model->GetAnimationTransform();
+			offset = model->GetGeometricOffset() * model->GetAnimationTransform();
 	}
 	else
-		world = model->GetGeometricOffset();
+		offset = model->GetGeometricOffset();
+
+	world = offset * world;
 
 	worldBuffer->SetWorld(world);
 
@@ -125,4 +129,9 @@ void ModelPart::CreateBuffer()
 
 	hr = D3D::GetDevice()->CreateBuffer(&desc, &data, &indexBuffer);
 	assert(SUCCEEDED(hr));
+}
+
+void ModelPart::SetWorldTransform(D3DXMATRIX & world)
+{
+	this->world = world;
 }

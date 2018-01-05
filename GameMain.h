@@ -28,4 +28,12 @@ private:
 	wstring idlePath;
 	wstring runPath;
 	wstring attackPath;
+
+	bool isMoving;
+	bool isAttack;
+	bool isTrigger;
+
+	D3DXMATRIX world;
+
+	float tempX;
 };

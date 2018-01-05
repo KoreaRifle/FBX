@@ -67,6 +67,8 @@ void ModelScene::Update()
 	bool isAnimated = false;
 	if (animationController != NULL)
 	{
+		// 애니메이션 사이즈가 0이상일 때(애니메이션이 존재함)
+		// isAnimated는 true가 된다.
 		isAnimated = animationController->GetAnimationCount() > 0;
 		
 		if (isAnimated == true)
@@ -164,6 +166,12 @@ void ModelScene::SetCurrentAnimation(wstring filePath)
 {
 	animationController->SetCurrentAnimation(filePath);
 	animationController->Play();
+}
+
+void ModelScene::SetWorldTransform(D3DXMATRIX& world)
+{
+	for each(Model* model in models)
+		model->SetWorldTransform(world);
 }
 
 void ModelScene::ProcessScene(bool isMaterial, bool isSkeleton, bool isMesh, bool isAnimation)
@@ -339,9 +347,6 @@ void ModelScene::ProcessAnimations(wstring file)
 	if (document != NULL)
 		document->FillAnimStackNameArray(takeArray);
 
-	int test2 = importer->GetAnimStackCount();
-	int a = 0;
-
 	for (int i = 0; i < importer->GetAnimStackCount(); i++)
 	{
 		int temp = importer->GetAnimStackCount();
@@ -387,7 +392,6 @@ void ModelScene::ProcessAnimation(FbxNode * node, wstring takeName, float frameR
 	{
 		if (nodeAttribute->GetAttributeType() == FbxNodeAttribute::eSkeleton)
 		{
-			int a = 0;
 			if (skeleton != NULL)
 			{
 				string test = node->GetName();

@@ -23,7 +23,9 @@ void GameMain::Initialize()
 	tPosePath = filePath + L"paladin_prop_j_nordstrom.fbx";
 	idlePath  = filePath + L"sword and shield idle.fbx";
 	runPath = filePath + L"sword and shield run.fbx";
-	attackPath = filePath + L"sword and shield attack.fbx";
+	attackPath = filePath + L"sword and shield slash.fbx";
+
+	isMoving = isAttack = isTrigger = false;
 
 	model = new ModelScene();
 
@@ -34,6 +36,10 @@ void GameMain::Initialize()
 
 	// Default Animation 설정
 	model->SetCurrentAnimation(idlePath);
+
+	D3DXMatrixIdentity(&world);
+
+	tempX = 0.0f;
 }
 
 void GameMain::Destroy()
@@ -66,13 +72,45 @@ void GameMain::Update()
 		Camera::Get()->MoveDown();
 
 	// W 누르면 캐릭터가 앞으로 움직이는 애니메이션 동작
-	if (Keyboard::Get()->KeyDown('W'))
+	if (isAttack == false)
 	{
-		model->SetCurrentAnimation(runPath);
+		if (Keyboard::Get()->KeyPress('W') || Keyboard::Get()->KeyPress('S'))
+		{
+			isMoving = true;
+			if (isTrigger == false)
+			{
+				isTrigger = true;
+				model->SetCurrentAnimation(runPath);
+			}
+
+			D3DXMatrixTranslation(&world, tempX, 0.0f, 0.0f);
+			
+			model->SetWorldTransform(world);
+		}
+		else if (Keyboard::Get()->KeyUp('W') || Keyboard::Get()->KeyUp('S'))
+		{
+			isMoving = false;
+			isTrigger = false;
+			model->SetCurrentAnimation(idlePath);
+		}
 	}
-	else if (Keyboard::Get()->KeyUp('W'))
+
+	tempX++;
+	
+
+	// 마우스 좌클릭 시 공격하는 애니메이션 동작
+	if (isMoving == false)
 	{
-		model->SetCurrentAnimation(idlePath);
+		if (Mouse::Get()->ButtonDown(0))
+		{
+			isAttack = true;
+			model->SetCurrentAnimation(attackPath);
+		}
+		else if (Mouse::Get()->ButtonUp(0))
+		{
+			isAttack = false;
+			model->SetCurrentAnimation(idlePath);
+		}
 	}
 
 	if (Mouse::Get()->ButtonPress(1))

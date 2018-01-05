@@ -44,6 +44,8 @@ public:
 	void AddVertex(ModelMaterial * material, D3DXVECTOR3 position, D3DXVECTOR3 normal, D3DXVECTOR2 uv, const ModelBoneWeights& boneWeights);
 	void CreateBuffer();
 
+	void SetWorldTransform(D3DXMATRIX& world);
+
 private:
 	wstring name;
 
