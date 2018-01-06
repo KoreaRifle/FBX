@@ -78,8 +78,25 @@ D3DXCOLOR ModelMaterial::GetProperty(FbxSurfaceMaterial * material, const char *
 
 void ModelMaterial::CreateView(wstring path, ID3D11ShaderResourceView ** view)
 {
+	DWORD fileValue = GetFileAttributes(path.c_str());
+
 	if (path.length() < 1) return;
 
+	if (fileValue < 0xFFFFFFFF)
+	{
+		HRESULT hr = D3DX11CreateShaderResourceViewFromFile
+		(
+			D3D::GetDevice()
+			, path.c_str()
+			, NULL
+			, NULL
+			, view
+			, NULL
+		);
+		assert(SUCCEEDED(hr));
+		return;
+	}
+/*
 	if (String::Contain(path, L"\\") == true)
 		String::Replace(&path, L"\\", L"/");
 
@@ -87,7 +104,7 @@ void ModelMaterial::CreateView(wstring path, ID3D11ShaderResourceView ** view)
 	String::SplitFilePath(path, NULL, &filePath);
 	filePath = ModelScene::TexturePath + filePath;
 
-	DWORD fileValue = GetFileAttributes(filePath.c_str());
+	fileValue = GetFileAttributes(filePath.c_str());
 	if (fileValue < 0xFFFFFFFF)
 	{
 		HRESULT hr = D3DX11CreateShaderResourceViewFromFile
@@ -100,5 +117,5 @@ void ModelMaterial::CreateView(wstring path, ID3D11ShaderResourceView ** view)
 			, NULL
 		);
 		assert(SUCCEEDED(hr));
-	}
+	}*/
 }

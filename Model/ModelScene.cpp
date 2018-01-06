@@ -168,9 +168,10 @@ void ModelScene::SetCurrentAnimation(wstring filePath)
 {
 	string tempOriginFilePath = String::WStringToString(filePath);
 
-	wstring tempRootFilePath = rootFilePath;
-	tempRootFilePath += L"sword and shield idle.fbx";
-	string tempFullFilePath = String::WStringToString(tempRootFilePath);
+	wstring tempIdleFilePath = rootFilePath;
+	tempIdleFilePath += L"sword and shield idle.fbx";
+	string tempFullFilePath = String::WStringToString(tempIdleFilePath);
+
 
 	// filePath°¡ idle.fbx ÀÏ¶§ isRootBoneLockÀ» false·Î ¹Ù²ãÁÜ
 	if(tempOriginFilePath == tempFullFilePath)
@@ -348,8 +349,6 @@ void ModelScene::ProcessMesh(FbxNode * node)
 
 void ModelScene::ProcessAnimations(wstring file)
 {
-	//animationController = new ModelAnimationController();
-
 	FbxNode* rootNode = scene->GetRootNode();
 	if (rootNode == NULL) return;
 

@@ -28,6 +28,7 @@ private:
 	wstring idlePath;
 	wstring runPath;
 	wstring attackPath;
+	wstring turnPath;
 
 	bool isMoving;
 	bool isAttack;
@@ -35,6 +36,10 @@ private:
 
 	D3DXMATRIX world;
 
+	float scale;
 	D3DXVECTOR3 location;
-	D3DXVECTOR3 rotation;
+	//D3DXVECTOR3 rotation;
+	//D3DXVECTOR3 rotationNormalize;
+	float rotationAngle;
+	float playerDirection;
 };
