@@ -37,6 +37,7 @@ public:
 	bool UseQuaternionKeyFrames() { return useQuaternionKeyFrames; }
 
 	void Update();
+
 private:
 	AnimationMode animationMode;
 	ModelAnimation* currentAnimation;

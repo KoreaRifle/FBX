@@ -137,3 +137,24 @@ void ModelPart::SetWorldTransform(D3DXMATRIX & world)
 {
 	this->world = world;
 }
+
+void ModelPart::GetCollisionBoxMinMaxValue(D3DXVECTOR3 * collisionBoxMin, D3DXVECTOR3 * collisionBoxMax)
+{
+	// 원형 콜리전 박스 제작을 위한 파츠별 최대/최소값 확인
+	D3DXVECTOR3 tempMinValue, tempMaxValue;
+	tempMinValue = tempMaxValue = positions[0];
+
+	for (size_t i = 0; i < positions.size(); i++)
+	{
+		// 최소값 계산
+		if (positions[i].x < tempMinValue.x) tempMinValue.x = positions[i].x;
+		if (positions[i].y < tempMinValue.y) tempMinValue.y = positions[i].y;
+		if (positions[i].z < tempMinValue.z) tempMinValue.z = positions[i].z;
+
+		if (positions[i].x > tempMaxValue.x) tempMaxValue.x = positions[i].x;
+		if (positions[i].y > tempMaxValue.y) tempMaxValue.y = positions[i].y;
+		if (positions[i].z > tempMaxValue.z) tempMaxValue.z = positions[i].z;
+	}
+ 	*collisionBoxMin = tempMinValue;
+	*collisionBoxMax = tempMaxValue;
+}

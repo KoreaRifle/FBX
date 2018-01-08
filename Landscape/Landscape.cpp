@@ -5,7 +5,7 @@
 Landscape::Landscape()
 	: Shader(L"./Landscape/Landscape.fx")
 	, diffuseMapFile(L"./Contents/Textures/TileSample.png")
-	, width(500), height(500)
+	, width(2222), height(2222)
 {
 	HRESULT hr;	
 

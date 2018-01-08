@@ -11,7 +11,8 @@ public:
 
 	void GetPosition(D3DXVECTOR3* position)
 	{
-		*position = this->position;
+		//*position = this->position;
+		*position = this->playerCamLocation;
 	}
 
 	void UpdateRotationMatrix();
@@ -77,4 +78,10 @@ private:
 	
 	D3DXMATRIX projection;
 	D3DXMATRIX ortho;
+
+public:
+	void SetPlayerLocation(D3DXVECTOR3 location);
+
+private:
+	D3DXVECTOR3 playerCamLocation; // 플레이어를 따라다니느 캠 위치
 };

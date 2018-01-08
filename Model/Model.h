@@ -59,4 +59,10 @@ private:
 	
 	typedef pair<wstring, ModelAnimationKeyFrames *> Pair;
 	vector<Pair> animationKeyFrames;
+
+public:
+	void GetCollisionBoxMinMaxValue(D3DXVECTOR3* collisionBoxMin, D3DXVECTOR3* collisionBoxMax);
+
+private:
+	D3DXVECTOR3 collisionBoxMin, collisionBoxMax;
 };

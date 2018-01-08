@@ -85,6 +85,7 @@ private:
 public:
 	void SetRootFilePath(wstring rootFilePath) { this->rootFilePath = rootFilePath; }
 	void SetRootBoneLock(bool isRootBoneLock) { this->isRootBoneLock = isRootBoneLock; }
+	void GetCollisionBoxMinMaxValue(D3DXVECTOR3* collisionBoxMin, D3DXVECTOR3* collisionBoxMax);
 
 private:
 	wstring rootFilePath;

@@ -46,6 +46,12 @@ private:
 
 	bool isSkinnedModel;
 
+
+public:
+	void GetCollisionBoxMinMaxValue(D3DXVECTOR3* collisionBoxMin, D3DXVECTOR3* collisionBoxMax);
+
 private:
 	D3DXMATRIX world;
+
+	D3DXVECTOR3 collisionBoxMin, collisionBoxMax;
 };

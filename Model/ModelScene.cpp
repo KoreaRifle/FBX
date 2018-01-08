@@ -168,13 +168,17 @@ void ModelScene::SetCurrentAnimation(wstring filePath)
 {
 	string tempOriginFilePath = String::WStringToString(filePath);
 
-	wstring tempIdleFilePath = rootFilePath;
-	tempIdleFilePath += L"sword and shield idle.fbx";
-	string tempFullFilePath = String::WStringToString(tempIdleFilePath);
+	wstring idleFilePath = rootFilePath;
+	idleFilePath += L"sword and shield idle.fbx";
+	wstring attackFilePath = rootFilePath;
+	attackFilePath += L"sword and shield slash.fbx";
+
+	string tempIdleFilePath = String::WStringToString(idleFilePath);
+	string tempAttackFilePath = String::WStringToString(attackFilePath);
 
 
 	// filePath가 idle.fbx 일때 isRootBoneLock을 false로 바꿔줌
-	if(tempOriginFilePath == tempFullFilePath)
+	if(tempOriginFilePath == tempIdleFilePath || tempOriginFilePath == tempAttackFilePath)
 		isRootBoneLock = false;
 	else
 		isRootBoneLock = true;
@@ -311,6 +315,7 @@ void ModelScene::ProcessMesh(FbxNode * node)
 
 	
 	Model* model = new Model(String::StringToWString(node->GetName()), modelBuffer);
+	//wstring test = String::StringToWString(node->GetName());
 	
 	FbxVector4* controlPoints = mesh->GetControlPoints();
 	for (int i = 0; i < mesh->GetPolygonCount(); i++)
@@ -812,4 +817,28 @@ D3DXMATRIX ModelScene::GetAbsoluteTransformFromCurrentTake(FbxNode * node, FbxTi
 	FbxAMatrix matrix = node->EvaluateGlobalTransform(time);
 	
 	return ModelUtility::ToMatrix(matrix);
+}
+
+void ModelScene::GetCollisionBoxMinMaxValue(D3DXVECTOR3 * collisionBoxMin, D3DXVECTOR3 * collisionBoxMax)
+{
+	D3DXVECTOR3 tempMinValue, tempMaxValue;
+	models[0]->GetCollisionBoxMinMaxValue(&tempMinValue, &tempMaxValue);
+
+	for (size_t i = 0; i < models.size(); i++)
+	{
+		D3DXVECTOR3 tempModelMinValue, tempModelMaxValue;
+		models[i]->GetCollisionBoxMinMaxValue(&tempModelMinValue, &tempModelMaxValue);
+
+		// 최소값 계산
+		if (tempModelMinValue.x < tempMinValue.x) tempMinValue.x = tempModelMinValue.x;
+		if (tempModelMinValue.y < tempMinValue.y) tempMinValue.y = tempModelMinValue.y;
+		if (tempModelMinValue.z < tempMinValue.z) tempMinValue.z = tempModelMinValue.z;
+
+		// 최대값 계산
+		if (tempModelMaxValue.x > tempMaxValue.x) tempMaxValue.x = tempModelMaxValue.x;
+		if (tempModelMaxValue.y > tempMaxValue.y) tempMaxValue.y = tempModelMaxValue.y;
+		if (tempModelMaxValue.z > tempMaxValue.z) tempMaxValue.z = tempModelMaxValue.z;
+	}
+	*collisionBoxMin = tempMinValue;
+	*collisionBoxMax = tempMaxValue;
 }

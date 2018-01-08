@@ -92,6 +92,34 @@ void Model::SetWorldTransform(D3DXMATRIX & world)
 		part->SetWorldTransform(world);
 }
 
+void Model::GetCollisionBoxMinMaxValue(D3DXVECTOR3 * collisionBoxMin, D3DXVECTOR3 * collisionBoxMax)
+{
+	// 0번째 part의 min값과 max값을 넣어 기준값을 만듬
+	D3DXVECTOR3 tempMinValue, tempMaxValue;
+	parts[0]->GetCollisionBoxMinMaxValue(&tempMinValue, &tempMaxValue);
+
+	// tempPartMinValue, tempPartMaxValue 를 통해 파츠별 min, max 값을 받고
+	// 0번째 값(tempMinValue, tempMaxValue)과 비교한다.
+	for (size_t i = 0; i < parts.size(); i++)
+	{
+		D3DXVECTOR3 tempPartMinValue, tempPartMaxValue;
+		parts[i]->GetCollisionBoxMinMaxValue(&tempPartMinValue, &tempPartMaxValue);
+
+		// 최소값 계산
+		if (tempPartMinValue.x < tempMinValue.x) tempMinValue.x = tempPartMinValue.x;
+		if (tempPartMinValue.y < tempMinValue.y) tempMinValue.y = tempPartMinValue.y;
+		if (tempPartMinValue.z < tempMinValue.z) tempMinValue.z = tempPartMinValue.z;
+
+		// 최대값 계산
+		if (tempPartMaxValue.x > tempMaxValue.x) tempMaxValue.x = tempPartMaxValue.x;
+		if (tempPartMaxValue.y > tempMaxValue.y) tempMaxValue.y = tempPartMaxValue.y;
+		if (tempPartMaxValue.z > tempMaxValue.z) tempMaxValue.z = tempPartMaxValue.z;
+	}
+
+	*collisionBoxMin = tempMinValue;
+	*collisionBoxMax = tempMaxValue;
+}
+
 void Model::UpdateAnimation(ModelAnimationController * animationController)
 {
 	if (animationController != NULL)

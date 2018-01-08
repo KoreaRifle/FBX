@@ -7,10 +7,11 @@ const float Camera::screenNear = 0.1f;
 const float Camera::screenDepth = 1000.0f;
 
 Camera::Camera()
-	: position(6.0f, 18.0f, -44.0f)
+	: position(0, 0, 0)
 	, forward(0, 0, 0), right(0, 0, 0), up(0, 0, 0)
 	, rotate(0, 0)
 	, translationSpeed(100.0f), rotationSpeed(2.5f)
+	, playerCamLocation(0, 0, 0)
 {
 	D3DXMatrixIdentity(&view);
 	D3DXMatrixIdentity(&projection);
@@ -20,7 +21,8 @@ Camera::Camera()
 	UpdateRotationMatrix();
 	UpdateViewMatrix();
 
-	UserInterface::AddCamera(&position);
+	//UserInterface::AddCamera(&position);
+	UserInterface::AddCamera(&playerCamLocation);
 }
 
 Camera::~Camera()
@@ -88,16 +90,19 @@ void Camera::UpdateProjectionMatrix()
 
 void Camera::UpdateViewMatrix()
 {
-	D3DXMatrixLookAtLH(&view, &position, &(position + forward), &up);
+	//D3DXMatrixLookAtLH(&view, &position, &(position + forward), &up);
+	D3DXMatrixLookAtLH(&view, &playerCamLocation, &(playerCamLocation + forward), &up);
 }
 
 void Camera::Update()
 {
+	UpdateViewMatrix();
 }
 
 void Camera::Move(D3DXVECTOR3 translation)
 {
-	position += translation * Frames::TimeElapsed();
+	//position += translation * Frames::TimeElapsed();
+	playerCamLocation += translation * Frames::TimeElapsed();
 	UpdateViewMatrix();
 }
 
@@ -185,6 +190,18 @@ void Camera::GetRay(D3DXVECTOR3 * origin, D3DXVECTOR3 * direction)
 
 	D3DXVec3Normalize(&dir, &dir);
 	
-	*origin = position;
+	//*origin = position;
+	*origin = playerCamLocation;
 	*direction = dir;
+}
+
+// 플레이어를 따라다니는 카메라 세팅
+void Camera::SetPlayerLocation(D3DXVECTOR3 location)
+{
+	D3DXVECTOR3 playerLocation = location;
+
+	//6.0f, 18.0f, -44.0f
+	playerCamLocation.x = location.x + 6.0f;
+	playerCamLocation.y = location.y + 18.0f;
+	playerCamLocation.z = location.z - 50.0f;
 }
