@@ -1,11 +1,12 @@
 #include "../stdafx.h"
 #include "CollisionBox.h"
 
-#define ForceScale 0.1f
-
 CollisionBox::CollisionBox(D3DXVECTOR3 minValue, D3DXVECTOR3 maxValue)
 	: Shader(L"./Character/Character.fx")
 {
+	forceScale = 0.1f;
+	//UserInterface::Get()->GetFbxModelScale(&forceScale);
+
 	minCoord = minValue;
 	maxCoord = maxValue;
 	
@@ -21,11 +22,8 @@ CollisionBox::CollisionBox(D3DXVECTOR3 minValue, D3DXVECTOR3 maxValue)
 	float tempHeight = y;
 
 	// hypotenuse : minCoord와 maxCoord 사이의 거리값
-	float hypotenuse = sqrt((tempWidth * tempWidth) + (y * y));
+	hypotenuse = sqrt((tempWidth * tempWidth) + (y * y));
 
-	// TODO : UserInterface의 scale 조정값을 가지고 와야함(현재 min/max크기의 0.1f 곱한값 강제 할당)
-	radius = hypotenuse * 0.5f * ForceScale;
-	
 	CreateBuffer();
 	CreateInputLayout(VertexColor::desc, VertexColor::count);
 
@@ -34,6 +32,9 @@ CollisionBox::CollisionBox(D3DXVECTOR3 minValue, D3DXVECTOR3 maxValue)
 
 CollisionBox::~CollisionBox()
 {
+	SAFE_DELETE_ARRAY(vertex);
+	SAFE_DELETE_ARRAY(index);
+
 	SAFE_RELEASE(vertexBuffer);
 	SAFE_RELEASE(indexBuffer);
 }
@@ -59,10 +60,14 @@ void CollisionBox::Render()
 	Shader::Render();
 
 	dc->DrawIndexed(indexCount, 0, 0);
+
+
 }
 
 void CollisionBox::CreateBuffer()
 {
+	radius = hypotenuse * 0.5f * forceScale;
+
 	HRESULT hr;
 
 	UINT* index = NULL;
@@ -70,7 +75,12 @@ void CollisionBox::CreateBuffer()
 	D3D11_BUFFER_DESC desc;
 	D3D11_SUBRESOURCE_DATA data;
 
-	vertexCount = 360;
+	UINT axisCount = 36;
+	UINT axisX, axisY, axisZ;
+	axisX = axisCount;
+	axisY = axisX * 2;
+	axisZ = axisX * 3;
+	vertexCount = axisCount * 3;
 	indexCount = vertexCount * 2;
 
 	vertex = new VertexColor[vertexCount];
@@ -78,26 +88,66 @@ void CollisionBox::CreateBuffer()
 	float prevRadian, curRadian;
 	prevRadian = curRadian = 0.0f;
 
-	for (int i = 0; i < 360; i++)
+	for (UINT i = 0; i < vertexCount; i++)
 	{
-		curRadian = prevRadian + ((float)D3DX_PI / 180.0f);
-		vertex[i].position.x = cosf(curRadian) * radius;
-		vertex[i].position.y = centerCircle.y * ForceScale;
-		vertex[i].position.z = sinf(curRadian) * radius;
-		prevRadian = curRadian;
+		// x축 회전
+		if (i < axisX)
+		{
+			curRadian = prevRadian + (2.0f * (float)D3DX_PI / axisCount);
+			vertex[i].position.x = centerCircle.x * forceScale;
+			vertex[i].position.y = sinf(curRadian) * radius;
+			vertex[i].position.z = cosf(curRadian) * radius;
+			prevRadian = curRadian;
+		}
 
+		// y축 회전
+		if (i == axisX) prevRadian = curRadian = 0.0f;
+		if (i >= axisX && i < axisY)
+		{
+			curRadian = prevRadian + (2.0f * (float)D3DX_PI / axisCount);
+			vertex[i].position.x = cosf(curRadian) * radius;
+			vertex[i].position.y = centerCircle.y * forceScale;
+			vertex[i].position.z = sinf(curRadian) * radius;
+			prevRadian = curRadian;
+		}
+
+		// z축 회전
+		if (i == axisY) prevRadian = curRadian = 0.0f;
+		if (i >= axisY && i < axisZ)
+		{
+			curRadian = prevRadian + (2.0f * (float)D3DX_PI / axisCount);
+			vertex[i].position.x = cosf(curRadian) * radius;
+			vertex[i].position.y = sinf(curRadian) * radius;
+			vertex[i].position.z = centerCircle.z * forceScale;
+			prevRadian = curRadian;
+		}
+		
 		vertex[i].color = 0xFFFF0000;
 	}
 
-	// TODO : 인덱스 설정했음에도 반원만 그려짐
+	//TODO: z축 회전에 대한 CollisionLine이 안 그려짐
 	index = new UINT[indexCount];
 	for (UINT i = 0; i < vertexCount; i++)
 	{
 		// 0,1,1,2,2,3,3,4....
-		index[2 * i] = i;
-		index[2 * i + 1] = i + 1;
+		if (i < axisX)
+		{
+			index[2 * i] = i;
+			if (i != axisX - 1) index[2 * i + 1] = i + 1;
+			else index[2 * i + 1] = 0;
+		}
+		else if (i >= axisX && i < axisY)
+		{
+			index[2 * i] = i;
+			if (i != axisY - 1) index[2 * i + 1] = i + 1;
+			else index[2 * i + 1] = axisX;
+		}
+		else if (i >= axisY && i < axisZ)
+		{
+			index[2 * i] = i;
+			index[2 * i + 1] = i + 1;
+		}
 	}
-	index[vertexCount - 1] = 0; // 반원 확인용(최종 빌드 시 지워야함)
 
 	//1. Vertex Buffer
 	ZeroMemory(&desc, sizeof(D3D11_BUFFER_DESC));
@@ -123,7 +173,4 @@ void CollisionBox::CreateBuffer()
 
 	hr = D3D::GetDevice()->CreateBuffer(&desc, &data, &indexBuffer);
 	assert(SUCCEEDED(hr));
-
-	SAFE_DELETE_ARRAY(vertex);
-	SAFE_DELETE_ARRAY(index);
 }
