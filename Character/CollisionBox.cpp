@@ -1,6 +1,7 @@
 #include "../stdafx.h"
 #include "CollisionBox.h"
 
+//TODO 캐릭터 크기만큼 콜리전 박스를 생성해야함
 CollisionBox::CollisionBox(D3DXVECTOR3 minValue, D3DXVECTOR3 maxValue)
 	: Shader(L"./Character/Character.fx")
 {
@@ -32,9 +33,6 @@ CollisionBox::CollisionBox(D3DXVECTOR3 minValue, D3DXVECTOR3 maxValue)
 
 CollisionBox::~CollisionBox()
 {
-	SAFE_DELETE_ARRAY(vertex);
-	SAFE_DELETE_ARRAY(index);
-
 	SAFE_RELEASE(vertexBuffer);
 	SAFE_RELEASE(indexBuffer);
 }
@@ -60,8 +58,6 @@ void CollisionBox::Render()
 	Shader::Render();
 
 	dc->DrawIndexed(indexCount, 0, 0);
-
-
 }
 
 void CollisionBox::CreateBuffer()
@@ -125,7 +121,6 @@ void CollisionBox::CreateBuffer()
 		vertex[i].color = 0xFFFF0000;
 	}
 
-	//TODO: z축 회전에 대한 CollisionLine이 안 그려짐
 	index = new UINT[indexCount];
 	for (UINT i = 0; i < vertexCount; i++)
 	{
@@ -145,7 +140,9 @@ void CollisionBox::CreateBuffer()
 		else if (i >= axisY && i < axisZ)
 		{
 			index[2 * i] = i;
-			index[2 * i + 1] = i + 1;
+			//index[2 * i + 1] = i + 1;
+			if (i != axisZ - 1) index[2 * i + 1] = i + 1;
+			else index[2 * i + 1] = axisY;
 		}
 	}
 
@@ -165,7 +162,7 @@ void CollisionBox::CreateBuffer()
 	//2. Index Buffer
 	ZeroMemory(&desc, sizeof(D3D11_BUFFER_DESC));
 	desc.Usage = D3D11_USAGE_DEFAULT;
-	desc.ByteWidth = sizeof(UINT) * vertexCount;
+	desc.ByteWidth = sizeof(UINT) * indexCount;
 	desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 
 	ZeroMemory(&data, sizeof(D3D11_SUBRESOURCE_DATA));
@@ -173,4 +170,7 @@ void CollisionBox::CreateBuffer()
 
 	hr = D3D::GetDevice()->CreateBuffer(&desc, &data, &indexBuffer);
 	assert(SUCCEEDED(hr));
+
+	SAFE_DELETE_ARRAY(index);
+	SAFE_DELETE_ARRAY(vertex);
 }

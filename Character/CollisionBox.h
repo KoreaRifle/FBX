@@ -11,6 +11,7 @@ public:
 	void Render();
 
 	void SetWorldMatrix(D3DXMATRIX& world) { this->world = world; }
+	void SetForceScale(float forceScale) { this->forceScale = forceScale; }
 
 private:
 	void CreateBuffer();
@@ -29,6 +30,9 @@ private:
 private:
 	D3DXVECTOR3 minCoord, maxCoord;
 	D3DXVECTOR3 centerCircle;
+	float hypotenuse; // ºøº¯
 	float radius;
+
+	float forceScale;
 };
 

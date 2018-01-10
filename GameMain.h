@@ -5,6 +5,7 @@ class RenderTexture;
 class Skydome;
 class Landscape;
 class Player;
+//class Enemy;
 class GameMain : public Window
 {
 public:
@@ -20,4 +21,5 @@ private:
 	Skydome* skydome;
 	Landscape* landscape;
 	Player* player;
+	//Enemy* enemyMutant;
 };

@@ -10,6 +10,7 @@ public:
 		D3DXMatrixIdentity(&data.boneScale);
 		boneScale = 0.1f;
 
+		UserInterface::Get()->SetFbxModelScale(boneScale);
 		UserInterface::Get()->AddFbxModelScale(&boneScale);
 		
 		for(int i = 0; i < 100; i++)

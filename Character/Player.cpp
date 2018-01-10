@@ -1,25 +1,28 @@
 #include "../stdafx.h"
 #include "Player.h"
 #include "../Model/ModelScene.h"
-#include "../Character/CollisionBox.h"
+#include "CollisionBox.h"
 
-// TODO : 콜리전 클래스 불러올 때 SetWorldMatrix() 함수를 통해 player의 매트릭스 전달해야함
+#define fPI (float)D3DX_PI // D3DX_PI를 float 형으로 캐스팅 한 것
+//#define Degree fPI/180.0f // 1도를 라디안으로 고친 것
+#define MoveDegree fPI/18.0f // 캐릭터의 회전각에 따른 속도
+
 Player::Player()
 {
 	wstring filePath = L"./Contents/Models/";
-	wstring paladinFolderPath = filePath + L"Sword and Shield Pack/";
+	wstring animationPath = filePath + L"Sword and Shield Pack/";
 
-	tPosePath = paladinFolderPath + L"paladin_prop_j_nordstrom.fbx";
-	idlePath = paladinFolderPath + L"sword and shield idle.fbx";
-	runPath = paladinFolderPath + L"sword and shield run.fbx";
-	attackPath = paladinFolderPath + L"sword and shield slash.fbx";
-	jumpPath = paladinFolderPath + L"sword and shield jump.fbx";
+	tPosePath = animationPath + L"paladin_prop_j_nordstrom.fbx";
+	idlePath = animationPath + L"sword and shield idle.fbx";
+	runPath = animationPath + L"sword and shield run.fbx";
+	attackPath = animationPath + L"sword and shield slash.fbx";
+	jumpPath = animationPath + L"sword and shield jump.fbx";
 
 	isMoving = isAttack = isTrigger = false;
 
 	model = new ModelScene();
 
-	model->SetRootFilePath(paladinFolderPath);
+	model->SetRootFilePath(animationPath);
 
 	model->LoadScene(tPosePath, true, true, true, false);
 	model->LoadScene(idlePath, false, false, false, true);
@@ -36,17 +39,17 @@ Player::Player()
 
 	UserInterface::Get()->AddFbxModelTransloate(&location.x, &location.y, &location.z);
 
-	// 회전각을 라디안으로 계산
-	//rotationAngle = (float)D3DX_PI / 180;
 	rotationAngle = 0.0f;
 	UserInterface::Get()->AddFbxModelRotate(0, &rotationAngle, 0);
 
 	model->GetCollisionBoxMinMaxValue(&collisionBoxMin, &collisionBoxMax);
 	colBox = new CollisionBox(collisionBoxMin, collisionBoxMax);
+	colBox->SetForceScale(0.1f);
 }
 	
 Player::~Player()
 {
+	SAFE_DELETE(colBox);
 	SAFE_DELETE(model);
 }
 
@@ -55,57 +58,93 @@ void Player::Update()
 	// 카메라가 따라다니게 만듬
 	Camera::Get()->SetPlayerLocation(location);
 
-
 	// W 누르면 캐릭터가 앞으로 움직이는 애니메이션 동작
-	// TODO : 캐릭터가 바라보고 있는 방향 찾아서 rotationAngle 값 조정
 	if (isAttack == false)
 	{
-		// Forward, Backward
-		if (KEYBOARD->KeyPress('W') || KEYBOARD->KeyPress('S'))
+		//? 라디안 각이 0~360도 일때 수행
+		if (rotationAngle >= 0.0f && rotationAngle <= 2 * fPI)
 		{
-			isMoving = true;
-			if (isTrigger == false)
+			// Forward, Backward
+			if (KEYBOARD->KeyPress('W') || KEYBOARD->KeyPress('S'))
 			{
-				isTrigger = true;
-				model->SetCurrentAnimation(runPath);
-			}
+				isMoving = true;
+				if (isTrigger == false)
+				{
+					isTrigger = true;
+					model->SetCurrentAnimation(runPath);
+				}
 
-			if (KEYBOARD->KeyPress('W'))
-			{
-				if (rotationAngle < 0.0f) rotationAngle += 6.0f;
-				else if (rotationAngle > 0.0f) rotationAngle -= 6.0f;
-				location.z++;
+				//? 근사치를 경계값으로 고정시킴(10도)
+				//? rotationAngle을 MoveDegree(10도)만큼 증감하므로 범위는 +- 10도로 함
+				if (KEYBOARD->KeyPress('W'))
+				{
+					if (rotationAngle > fPI)
+						rotationAngle += MoveDegree;
+					else if (rotationAngle <= fPI)
+						rotationAngle -= MoveDegree;
+
+					// 범위 지정 후 값 고정(떨림 방지)
+					if (rotationAngle <= MoveDegree && rotationAngle >= 0.0f - MoveDegree)
+						rotationAngle = 0.0f;
+					location.z++;
+				}
+				else if (KEYBOARD->KeyPress('S'))
+				{
+					if (rotationAngle >= 0.0f && rotationAngle < fPI)
+						rotationAngle += MoveDegree;
+					else if (rotationAngle > fPI && rotationAngle < 2 * fPI)
+						rotationAngle -= MoveDegree;
+
+					// 범위 지정 후 값 고정(떨림 방지)
+					if (rotationAngle <= fPI + MoveDegree && rotationAngle >= fPI - MoveDegree)
+						rotationAngle = fPI;
+					location.z--;
+				}
 			}
-			if (KEYBOARD->KeyPress('S'))
+			// Right, Left
+			if (KEYBOARD->KeyPress('A') || KEYBOARD->KeyPress('D'))
 			{
-				location.z--;
-				if (rotationAngle < 180.0f) rotationAngle += 6.0f;
-				else if (rotationAngle > 180.0f) rotationAngle -= 6.0f;
+				isMoving = true;
+				if (isTrigger == false)
+				{
+					isTrigger = true;
+					model->SetCurrentAnimation(runPath);
+				}
+
+				if (KEYBOARD->KeyPress('D'))
+				{
+					// rotationAngle > 270 or rotationAngle < 90
+					if (rotationAngle >= 3.0f * fPI / 2.0f || rotationAngle < fPI / 2.0f)
+						rotationAngle += MoveDegree;
+					
+					else if (rotationAngle > fPI / 2.0f && rotationAngle < 3.0f * fPI / 2.0f)
+						rotationAngle -= MoveDegree;
+
+					// 범위 지정 후 값 고정(떨림 방지)
+					if (rotationAngle <= fPI / 2.0f + MoveDegree && rotationAngle >= fPI / 2.0f - MoveDegree)
+						rotationAngle = fPI / 2.0f;
+					location.x++;
+				}
+				else if (KEYBOARD->KeyPress('A'))
+				{
+					if (rotationAngle >= fPI / 2.0f && rotationAngle < 3.0f * fPI / 2.0f) rotationAngle += MoveDegree;
+					else if (rotationAngle < fPI / 2.0f || rotationAngle > 3.0f * fPI / 2.0f) rotationAngle -= MoveDegree;
+
+					// 범위 지정 후 값 고정(떨림 방지)
+					if (rotationAngle <= 3.0f * fPI / 2.0f + MoveDegree && rotationAngle >= 3.0f * fPI / 2.0f - MoveDegree)
+						rotationAngle = 3.0f * fPI / 2.0f;
+					location.x--;
+				}
 			}
 		}
-		// Right, Left
-		if (KEYBOARD->KeyPress('A') || KEYBOARD->KeyPress('D'))
+		//? 라디안 값이 360도 초과일 땐 값을 0도로,
+		//? 라디안 값이 0도 미만일 땐 값을 360도로 rotationAngle 값을 강제 조정
+		else if (rotationAngle <= 0.0f || rotationAngle >= 2 * fPI)
 		{
-			isMoving = true;
-			if (isTrigger == false)
-			{
-				isTrigger = true;
-				model->SetCurrentAnimation(runPath);
-			}
-
-			if (KEYBOARD->KeyPress('D'))
-			{
-				if (rotationAngle < 90.0f) rotationAngle += 6.0f;
-				else if (rotationAngle > 90.0f) rotationAngle -= 6.0f;
-				location.x++;
-			}
-			if (KEYBOARD->KeyPress('A'))
-			{
-				if (rotationAngle < 270.0f) rotationAngle += 6.0f;
-				else if (rotationAngle > 270.0f) rotationAngle -= 6.0f;
-				location.x--;
-			}
+			if (rotationAngle > 2 * fPI) rotationAngle = 0.0f;
+			else if (rotationAngle < 0.0f) rotationAngle = 2 * fPI;
 		}
+
 		// 키 입력 중지 상태
 		if (KEYBOARD->KeyUp('W') || KEYBOARD->KeyUp('S') || KEYBOARD->KeyUp('A') || KEYBOARD->KeyUp('D'))
 		{
@@ -114,25 +153,23 @@ void Player::Update()
 			model->SetCurrentAnimation(idlePath);
 		}
 
-		if (KEYBOARD->KeyDown(VK_SPACE))
-		{
-			while (isJump != false)
-			{
-				isAttack = false;
-				model->SetCurrentAnimation(jumpPath);
+		//TODO : 점프 모션 구현
+		//if (KEYBOARD->KeyDown(VK_SPACE))
+		//{
+		//	while (isJump != false)
+		//	{
+		//		isAttack = false;
+		//		model->SetCurrentAnimation(jumpPath);
 
-				// TODO : 만약 점프 모션이 다 끝났을 경우 루프 탈출
+		//		// TODO : 만약 점프 모션이 다 끝났을 경우 루프 탈출
 
-			}
-		}
+		//	}
+		//}
 
 		// 회전 시 D3DXMatrixRotationAxis를 사용해서
 		// 반환행렬(matRotation), 회전축(Y축), 회전각(rotationAngle)을 넣는다.
-
-
 		D3DXMATRIX matRotation, matTranslation;
-		D3DXMatrixRotationAxis(&matRotation, &D3DXVECTOR3(0, 1, 0), rotationAngle * 2 * Frames::Get()->TimeElapsed());
-		//D3DXMatrixRotationYawPitchRoll(&matRotation, rotationAngle, 0, 0);
+		D3DXMatrixRotationAxis(&matRotation, &D3DXVECTOR3(0, 1, 0), rotationAngle);
 		D3DXMatrixTranslation(&matTranslation, location.x, location.y, location.z);
 
 		world = matRotation * matTranslation;

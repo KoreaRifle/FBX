@@ -39,8 +39,6 @@ void ModelPart::Update(bool isAnimation)
 
 	//world = offset * world;
 
-	D3DXMATRIX testWorld = offset * world;
-
 	worldBuffer->SetWorld(world * offset);
 
 	Shader::Update();
