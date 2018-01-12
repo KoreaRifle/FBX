@@ -203,5 +203,5 @@ void Camera::SetPlayerLocation(D3DXVECTOR3 location)
 	//6.0f, 18.0f, -44.0f
 	playerCamLocation.x = location.x + 6.0f;
 	playerCamLocation.y = location.y + 18.0f;
-	playerCamLocation.z = location.z - 50.0f;
+	playerCamLocation.z = location.z - 35.0f;
 }

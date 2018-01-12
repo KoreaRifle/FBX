@@ -1,8 +1,9 @@
 #pragma once
+#include "CharacterManager.h"
 
 class ModelScene;
 class CollisionBox;
-class Player
+class Player : public CharacterManager
 {
 public:
 	Player();
@@ -11,12 +12,14 @@ public:
 	void Update();
 	void Render();
 
+	D3DXVECTOR3 GetLocation() { return location; }
 
 private:
 	ModelScene* model;
 	CollisionBox* colBox;
 
 private:
+	wstring className;
 
 	wstring tPosePath;
 	wstring idlePath;

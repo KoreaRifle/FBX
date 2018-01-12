@@ -6,7 +6,6 @@ CollisionBox::CollisionBox(D3DXVECTOR3 minValue, D3DXVECTOR3 maxValue)
 	: Shader(L"./Character/Character.fx")
 {
 	forceScale = 0.1f;
-	//UserInterface::Get()->GetFbxModelScale(&forceScale);
 
 	minCoord = minValue;
 	maxCoord = maxValue;
@@ -91,6 +90,7 @@ void CollisionBox::CreateBuffer()
 		{
 			curRadian = prevRadian + (2.0f * (float)D3DX_PI / axisCount);
 			vertex[i].position.x = centerCircle.x * forceScale;
+			//vertex[i].position.x = centerCircle.x;
 			vertex[i].position.y = sinf(curRadian) * radius;
 			vertex[i].position.z = cosf(curRadian) * radius;
 			prevRadian = curRadian;
@@ -103,6 +103,7 @@ void CollisionBox::CreateBuffer()
 			curRadian = prevRadian + (2.0f * (float)D3DX_PI / axisCount);
 			vertex[i].position.x = cosf(curRadian) * radius;
 			vertex[i].position.y = centerCircle.y * forceScale;
+			//vertex[i].position.y = centerCircle.y;
 			vertex[i].position.z = sinf(curRadian) * radius;
 			prevRadian = curRadian;
 		}
@@ -115,6 +116,7 @@ void CollisionBox::CreateBuffer()
 			vertex[i].position.x = cosf(curRadian) * radius;
 			vertex[i].position.y = sinf(curRadian) * radius;
 			vertex[i].position.z = centerCircle.z * forceScale;
+			//vertex[i].position.z = centerCircle.z;
 			prevRadian = curRadian;
 		}
 		

@@ -4,11 +4,11 @@
 #include "CollisionBox.h"
 
 #define fPI (float)D3DX_PI // D3DX_PI를 float 형으로 캐스팅 한 것
-//#define Degree fPI/180.0f // 1도를 라디안으로 고친 것
 #define MoveDegree fPI/18.0f // 캐릭터의 회전각에 따른 속도
 
 Player::Player()
 {
+	className = L"Player";
 	wstring filePath = L"./Contents/Models/";
 	wstring animationPath = filePath + L"Sword and Shield Pack/";
 
@@ -173,6 +173,9 @@ void Player::Update()
 		D3DXMatrixTranslation(&matTranslation, location.x, location.y, location.z);
 
 		world = matRotation * matTranslation;
+
+		// 상속받은 클래스로 위치를 보내준다.
+		SetLocation(className, location);
 
 		colBox->SetWorldMatrix(world);
 		model->SetWorldTransform(world);
