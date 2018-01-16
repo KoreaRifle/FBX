@@ -16,6 +16,7 @@ Model::Model(wstring name, ModelBuffer* modelBuffer)
 	D3DXMatrixIdentity(&matAnimationTransform);
 
 	modelBuffer = new ModelBuffer();
+	isOffTrigger = false;
 }
 
 Model::~Model()
@@ -29,14 +30,20 @@ Model::~Model()
 
 void Model::Update(bool isAnimation)
 {
-	for each(ModelPart* part in parts)
-		part->Update(isAnimation);
+	if (isOffTrigger == false)
+	{
+		for each(ModelPart* part in parts)
+			part->Update(isAnimation);
+	}
 }
 
 void Model::Render()
 {
-	for each(ModelPart* part in parts)
-		part->Render();
+	if (isOffTrigger == false)
+	{
+		for each(ModelPart* part in parts)
+			part->Render();
+	}
 }
 
 void Model::AddAnimationKeyFrames(ModelAnimationKeyFrames * animationKeyFrames)
@@ -118,6 +125,22 @@ void Model::GetCollisionBoxMinMaxValue(D3DXVECTOR3 * collisionBoxMin, D3DXVECTOR
 
 	*collisionBoxMin = tempMinValue;
 	*collisionBoxMax = tempMaxValue;
+}
+
+void Model::SetBinaryFile(BinaryWriter * bw)
+{
+	for each(ModelPart* part in parts)
+	{
+		part->SetBinaryFile(bw);
+	}
+}
+
+void Model::SetBinaryFile(BinaryReader * br)
+{
+	for each(ModelPart* part in parts)
+	{
+		part->SetBInaryFile(br);
+	}
 }
 
 void Model::UpdateAnimation(ModelAnimationController * animationController)

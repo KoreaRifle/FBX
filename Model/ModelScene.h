@@ -12,7 +12,7 @@ public:
 	ModelScene();
 	~ModelScene();
 
-	void LoadScene(wstring file, bool isMaterial, bool isSkeleton, bool isMesh, bool isAnimation);
+	void LoadScene(wstring file, bool isMaterial, bool isSkeleton, bool isMesh, bool isAnimation, bool isRootBoneLock = false);
 	void SetCurrentAnimation(wstring filePath);
 
 	void SetWorldTransform(D3DXMATRIX& world);
@@ -23,7 +23,7 @@ public:
 	static wstring TexturePath;
 
 private:
-	void ProcessScene(bool isMaterial, bool isSkeleton, bool isMesh, bool isAnimation);
+	void ProcessScene(bool isMaterial, bool isSkeleton, bool isMesh, bool isAnimation, bool isRootBoneLock);
 	void ProcessMaterial();
 	void ProcessNode(FbxNode* node, FbxNodeAttribute::EType attribute);
 	void ProcessMesh(FbxNode* node);
@@ -86,8 +86,24 @@ public:
 	void SetRootFilePath(wstring rootFilePath) { this->rootFilePath = rootFilePath; }
 	void SetRootBoneLock(bool isRootBoneLock) { this->isRootBoneLock = isRootBoneLock; }
 	void GetCollisionBoxMinMaxValue(D3DXVECTOR3* collisionBoxMin, D3DXVECTOR3* collisionBoxMax);
+	bool SetChangeWeapon(wstring weaponFilePath);
 
 private:
 	wstring rootFilePath;
 	bool isRootBoneLock;
+
+	typedef pair<wstring, bool> Pair;
+	vector<Pair> rootBoneLockVec;
+
+// 검 변경 관련
+private:
+	wstring swordName;
+
+// 바이너리 입출력 관련
+public:
+
+
+private:
+	BinaryWriter* bw;
+	BinaryReader* br;
 };

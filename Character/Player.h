@@ -3,7 +3,7 @@
 
 class ModelScene;
 class CollisionBox;
-class Player : public CharacterManager
+class Player
 {
 public:
 	Player();
@@ -13,13 +13,15 @@ public:
 	void Render();
 
 	D3DXVECTOR3 GetLocation() { return location; }
+	void SetMonsterLocation(D3DXVECTOR3 monsterLocation) { this->monsterLocation = monsterLocation; }
 
 private:
 	ModelScene* model;
 	CollisionBox* colBox;
 
 private:
-	wstring className;
+	wstring animationPath;
+	wstring weaponPath;
 
 	wstring tPosePath;
 	wstring idlePath;
@@ -34,9 +36,13 @@ private:
 
 	D3DXMATRIX world;
 
+	float moveSpeed;
 	D3DXVECTOR3 location;
 	float rotationAngle;
 
 	D3DXVECTOR3 collisionBoxMin, collisionBoxMax;
+
+private:
+	D3DXVECTOR3 monsterLocation;
 };
 

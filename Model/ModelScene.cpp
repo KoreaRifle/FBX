@@ -45,10 +45,16 @@ ModelScene::ModelScene()
 	animationController = new ModelAnimationController();
 
 	isRootBoneLock = true;
+	swordName = L"Paladin_J_Nordstrom_Sword";
+	bw = new BinaryWriter();
+	br = new BinaryReader();
 }
 
 ModelScene::~ModelScene()
 {
+	SAFE_DELETE(br);
+	SAFE_DELETE(bw);
+
 	SAFE_DELETE(converter);
 
 	for each(ModelMaterial* temp in materials)
@@ -115,8 +121,20 @@ void ModelScene::Render()
 }
 
 // 
-void ModelScene::LoadScene(wstring file, bool isMaterial, bool isSkeleton, bool isMesh, bool isAnimation)
+void ModelScene::LoadScene(wstring file, bool isMaterial, bool isSkeleton, bool isMesh, bool isAnimation, bool isRootBoneLock)
 {
+	wstring test1;
+	String::SplitFilePath(file, NULL, &test1);
+	String::Replace(&test1, L"fbx", L"bin");
+
+	//// 최초에 파일을 그대로 읽어오고 존재하면 아래 모델 생성을 뛰어넘는다.
+	//wstring brPath = file;
+	//String::Replace(&brPath, L"fbx", L"bin");
+
+	//br->Open(brPath);
+	//bool isRead = br->Read(test1);
+
+	rootBoneLockVec.push_back(Pair(file, isRootBoneLock));
 	string tempFile = String::WStringToString(file);
 	animationFileName = file;
 
@@ -159,29 +177,27 @@ void ModelScene::LoadScene(wstring file, bool isMaterial, bool isSkeleton, bool 
 	status = importer->Import(scene);
 	assert(status == true);
 
-	ProcessScene(isMaterial, isSkeleton, isMesh, isAnimation);
+	ProcessScene(isMaterial, isSkeleton, isMesh, isAnimation, isRootBoneLock);
+
+	bw->Open(test1);
+	for each(Model* model in models)
+	{
+		model->SetBinaryFile(bw);
+	}
+	bw->Close();
 
 	importer->Destroy();
 }
 
 void ModelScene::SetCurrentAnimation(wstring filePath)
 {
-	string tempOriginFilePath = String::WStringToString(filePath);
-
-	wstring idleFilePath = rootFilePath;
-	idleFilePath += L"sword and shield idle.fbx";
-	wstring attackFilePath = rootFilePath;
-	attackFilePath += L"sword and shield slash.fbx";
-
-	string tempIdleFilePath = String::WStringToString(idleFilePath);
-	string tempAttackFilePath = String::WStringToString(attackFilePath);
-
-
-	// filePath가 idle.fbx 일때 isRootBoneLock을 false로 바꿔줌
-	if(tempOriginFilePath == tempIdleFilePath || tempOriginFilePath == tempAttackFilePath)
-		isRootBoneLock = false;
-	else
-		isRootBoneLock = true;
+	for (size_t i = 0; i < rootBoneLockVec.size(); i++)
+	{
+		if (rootBoneLockVec[i].first == filePath)
+		{
+			isRootBoneLock = rootBoneLockVec[i].second;
+		}
+	}
 
 	animationController->SetCurrentAnimation(filePath);
 	animationController->Play();
@@ -193,7 +209,7 @@ void ModelScene::SetWorldTransform(D3DXMATRIX& world)
 		model->SetWorldTransform(world);
 }
 
-void ModelScene::ProcessScene(bool isMaterial, bool isSkeleton, bool isMesh, bool isAnimation)
+void ModelScene::ProcessScene(bool isMaterial, bool isSkeleton, bool isMesh, bool isAnimation, bool isRootBoneLock)
 {
 
 	if (isMaterial == true) ProcessMaterial();
@@ -315,8 +331,8 @@ void ModelScene::ProcessMesh(FbxNode * node)
 
 	
 	Model* model = new Model(String::StringToWString(node->GetName()), modelBuffer);
-	//wstring test = String::StringToWString(node->GetName());
-	
+	wstring test = String::StringToWString(node->GetName());
+
 	FbxVector4* controlPoints = mesh->GetControlPoints();
 	for (int i = 0; i < mesh->GetPolygonCount(); i++)
 	{
@@ -338,7 +354,6 @@ void ModelScene::ProcessMesh(FbxNode * node)
 
 			D3DXVECTOR3 vecPos = ModelUtility::ToVector3(fbxPos);
 			D3DXVECTOR3 vecNormal = ModelUtility::ToVector3(fbxNormal);
-
 			D3DXVECTOR2 vecUv = GetUV(mesh, 0, i, vi, vertexIndex);
 			model->AddVertex(material, vecPos, vecNormal, vecUv, boneWeights[vertexIndex]);
 		}//for(vi)
@@ -523,41 +538,6 @@ void ModelScene::ProcessBoneWeights(FbxMesh * mesh, vector<ModelBoneWeights>& me
 
 	for (int i = 0; i < mesh->GetDeformerCount(); ++i)
 	{
-		/************************************************************
-		NOTE : FbxDeformer 클래스
-			FbxMesh가 가지고있는 애니메이션 정보.
-			보통 1개의 Mesh당 1개의 Deformer가 있다.
-			Skin Deformer(FbxSkin) 및
-			Vertex Cache Deformer(FbxVertexCacheDeformer)의
-			기본 클래스이다.
-			해당 Deformer 타입은 FbxDeformer::eSkin과
-			FbxDeformer::eVertexCache이다.
-			Deformer는 외형을 움직이기 위해 Geometry(FbxGeometry)에
-			바인딩 된다.
-			일반적으로 Deformer 하위의 일부 객체와 Deformer를 통해
-			애니메이션이 표시된다.
-			Skin Deformer(FbxSkin)에는 클러스터(FbxCluster)가 포함되어
-			있다. 각 클러스터는 서로 다른 가중치(weights)를 가지고
-			있어, 지오메트리 제어점의 하위집합에 영향을 미친다.
-			///////////////////////////////////////////////////////
-			(아래 글 수정필요)
-			///////////////////////////////////////////////////////
-			예를 들어 휴머노이드 형태의 매쉬는 피부(skin)을 붙일 수
-			있는데, 이는 휴머노이드 매쉬가 본들(bones)에 의해
-			변형되는 방식이라고 설명할 수 있다.
-			///////////////////////////////////////////////////////
-			(수정본)
-			예를 들어 휴머노이드 모양의 메쉬에 스킨이 부착 되어 있는데,
-			설명하자면 휴머노이드 메쉬가 본에 의해 변형 되는 것을
-			말한다.
-			///////////////////////////////////////////////////////
-			본들이 움직일 때, 클러스터는 본들이 움직이기 위해
-			Geometry를 작용한다.
-			정점 저장 디포머(Vertex Cache Deformer)는 Cache(FbxCache)
-			가 포함되어 있다.
-			캐시는 모든 Geometry 제어점에 대한 애니메이션 정보를
-			포함하고 있다.
-		************************************************************/
 		FbxDeformer* deformer = mesh->GetDeformer(i);
 
 		if (deformer == NULL)
@@ -841,4 +821,24 @@ void ModelScene::GetCollisionBoxMinMaxValue(D3DXVECTOR3 * collisionBoxMin, D3DXV
 	}
 	*collisionBoxMin = tempMinValue;
 	*collisionBoxMax = tempMaxValue;
+}
+
+bool ModelScene::SetChangeWeapon(wstring weaponFilePath)
+{
+	//TODO : 검바꾸기
+	
+	//? 변경할 검은 이미 추가된 상태.
+	//? 이 검의 위치를 팔라딘 검의 위치로 바꿔야한다.
+	for each(Model* model in models)
+	{
+		if (model->GetName() == swordName)
+		{
+			//? model이름이 팔라딘검과 같을 때 팔라딘검 업데이트와 랜더를 off시킴
+			model->SetOffTrigger(true);
+			//LoadScene(weaponFilePath, true, false, true, false, true);
+			return true;
+		}
+	}
+
+	return false;
 }

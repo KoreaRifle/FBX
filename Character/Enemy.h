@@ -9,7 +9,8 @@ public:
 	Enemy(wstring enemyFbxFileName);
 	~Enemy();
 
-	//void LinkPlayer(Player* player) { this->player = player; }
+	D3DXVECTOR3 GetLocation() { return location; }
+	void SetPlayerLocation(D3DXVECTOR3 playerLocation) { this->playerLocation = playerLocation; }
 	
 	void Update();
 	void Render();
@@ -32,6 +33,7 @@ private:
 	D3DXMATRIX world;
 
 	D3DXVECTOR3 location;
+	float moveSpeed;
 	float rotationAngle;;
 
 	D3DXVECTOR3 collisionBoxMin, collisionBoxMax;
@@ -41,4 +43,5 @@ private:
 	D3DXVECTOR3 playerLocation;
 
 	bool isDistanceArea;
+	bool isRunTrigger;
 };

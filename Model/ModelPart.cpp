@@ -156,3 +156,40 @@ void ModelPart::GetCollisionBoxMinMaxValue(D3DXVECTOR3 * collisionBoxMin, D3DXVE
  	*collisionBoxMin = tempMinValue;
 	*collisionBoxMax = tempMaxValue;
 }
+
+void ModelPart::SetBinaryFile(BinaryWriter * bw)
+{
+	this->bw = bw;
+	WriteBinaryFile();
+}
+
+void ModelPart::SetBInaryFile(BinaryReader * br)
+{
+	this->br = br;
+}
+
+void ModelPart::WriteBinaryFile()
+{
+	for (size_t i = 0; i < positions.size(); i++)
+		bw->Vector3(positions[i]);
+	for (size_t i = 0; i < normals.size(); i++)
+		bw->Vector3(normals[i]);
+	for (size_t i = 0; i < uvs.size(); i++)
+		bw->Vector2(uvs[i]);
+	bw->UInt(vertexCount);
+	bw->UInt(indexCount);
+	bw->Matrix(world);
+	
+	//? 본 정보들도 들어감
+	for (UINT i = 0; i < boneWeights.size(); i++)
+	{
+		ModelBlendWeights weight = boneWeights[i].GetBlendWeights();
+		bw->Vector4(weight.BlendIndices);
+		bw->Vector4(weight.BlendWeights);
+	}
+}
+
+void ModelPart::ReadBinaryFile()
+{
+	positions.push_back(br->Vector3());
+}

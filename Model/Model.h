@@ -65,4 +65,16 @@ public:
 
 private:
 	D3DXVECTOR3 collisionBoxMin, collisionBoxMax;
+
+// 검 변경 관련
+public:
+	void SetOffTrigger(bool isOffTrigger) { this->isOffTrigger = isOffTrigger; }
+
+private:
+	bool isOffTrigger;
+
+// 바이너리 입출력 관련
+public:
+	void SetBinaryFile(BinaryWriter* bw);
+	void SetBinaryFile(BinaryReader* br);
 };

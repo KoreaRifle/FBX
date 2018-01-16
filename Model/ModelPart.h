@@ -54,4 +54,15 @@ private:
 	D3DXMATRIX world;
 
 	D3DXVECTOR3 collisionBoxMin, collisionBoxMax;
+
+// 바이너리 입출력 관련
+public:
+	void SetBinaryFile(BinaryWriter* bw);
+	void SetBInaryFile(BinaryReader* br);
+	void WriteBinaryFile();
+	void ReadBinaryFile();
+
+private:
+	BinaryWriter* bw;
+	BinaryReader* br;
 };

@@ -5,6 +5,8 @@
 
 //TODO Enemy 클래스 코드 다 구현하기 전에는 CollisionBox 주석 풀지 말것
 Enemy::Enemy(wstring enemyFbxFileName)
+	: isDistanceArea(false), moveSpeed(100.0f)
+	, isRunTrigger(false)
 {
 	className = enemyFbxFileName;
 	wstring filePath = L"./Contents/Models/";
@@ -23,8 +25,8 @@ Enemy::Enemy(wstring enemyFbxFileName)
 	model->SetRootFilePath(animationPath);
 	
 	model->LoadScene(tPosePath, true, true, true, false);
-	model->LoadScene(idlePath, false, false, false, true);
-	model->LoadScene(runPath, false, false, false, true);
+	model->LoadScene(idlePath, false, false, false, true, true);
+	model->LoadScene(runPath, false, false, false, true, true);
 	model->LoadScene(combatReadyPath, false, false, false, true);
 	model->LoadScene(attackPath, false, false, false, true);
 	model->LoadScene(deathPath, false, false, false, true);
@@ -34,19 +36,100 @@ Enemy::Enemy(wstring enemyFbxFileName)
 
 	D3DXMatrixIdentity(&world);
 	location = D3DXVECTOR3(0, 0, 200);
-
-	//player = new Player();
 }
 
 Enemy::~Enemy()
 {
-	//SAFE_DELETE(player);
 	//SAFE_DELETE(colBox);
 	SAFE_DELETE(model);
 }
 
 void Enemy::Update()
 {
+	// 몹이 보고 있는 방향으로 부채꼴 콜리전 생성하여 거기에 닿으면 움직이도록 수정예정
+
+	//float crDistance = 150.0f; // combatReadyDistance : 전투애니메이션 유효거리
+	//float czDistance = 100.0f; // combatZoneDistance : 몬스터가 따라오는 유효거리
+	
+	// 플레이어와 몬스터간의 거리 계산
+	//D3DXVECTOR3 distance;
+	//distance.x = location.x - playerLocation.x;
+	//distance.z = location.z - playerLocation.z;
+
+	//if (isDistanceArea == false)
+	//{
+	//	isRunTrigger = false;
+	//	if (distance.x <= crDistance && distance.x >= -crDistance)
+	//	{
+	//		if (distance.z <= crDistance && distance.z >= -crDistance)
+	//		{
+	//			isDistanceArea = true;
+	//			model->SetCurrentAnimation(combatReadyPath);
+	//		}
+	//	}
+	//}
+	//// 플레이어가 combatZone에 진입했을 때(몬스터가 플레이어 위치로 이동)
+	//else if (isDistanceArea == true)
+	//{
+	//	if (distance.x <= czDistance && distance.x >= -czDistance)
+	//	{
+	//		if (distance.z <= czDistance && distance.z >= -czDistance)
+	//		{
+	//			if (isRunTrigger == false)
+	//			{
+	//				model->SetCurrentAnimation(runPath);
+	//				isRunTrigger = true;
+	//			}
+	//			// 몬스터가 플레이어 위치로 이동함
+	//			if (abs(playerLocation.z) >= abs(location.z))
+	//			{
+	//				if (playerLocation.z > 0)
+	//					location.z = location.z + (location.z * Frames::Get()->TimeElapsed());
+	//				else
+	//					location.z = location.z - (location.z * Frames::Get()->TimeElapsed());
+
+	//				//TODO combatZone을 벗어났을 때 combatReady 상태로 전환 필요
+	//			}
+	//			else if (abs(playerLocation.z <= abs(location.z)))
+	//			{
+	//				if (playerLocation.z > 0)
+	//					location.z = location.z - (location.z * Frames::Get()->TimeElapsed());
+	//				else
+	//					location.z = location.z + (location.z * Frames::Get()->TimeElapsed());
+	//			}
+	//		}
+	//	}
+	//	else
+	//	{
+	//		isRunTrigger = false;
+	//		model->SetCurrentAnimation(combatReadyPath);
+	//	}
+	//}
+	//// 플레이어와 몬스터 거리가 crDistance를 벗어났을 때
+	//else if (isDistanceArea == true)
+	//{
+	//	if (distance.x > crDistance)
+	//	{
+	//		isDistanceArea = false;
+	//		model->SetCurrentAnimation(idlePath);
+	//	}
+	//	else if(distance.x < -crDistance)
+	//	{
+	//		isDistanceArea = false;
+	//		model->SetCurrentAnimation(idlePath);
+	//	}
+	//	else if (distance.z > crDistance)
+	//	{
+	//		isDistanceArea = false;
+	//		model->SetCurrentAnimation(idlePath);
+	//	}
+	//	else if (distance.z < -crDistance)
+	//	{
+	//		isDistanceArea = false;
+	//		model->SetCurrentAnimation(idlePath);
+	//	}
+	//}
+
 	D3DXMATRIX matTranslation, matRotation;
 	D3DXMatrixTranslation(&matTranslation, location.x, location.y, location.z);
 
@@ -57,24 +140,6 @@ void Enemy::Update()
 	world = matRotation * matTranslation;
 
 	model->SetWorldTransform(world);
-
-	// 플레이어와 몬스터간의 거리 계산
-	//playerLocation = player->GetLocation();
-	D3DXVECTOR3 distance;
-	distance.x = location.x - playerLocation.x;
-	distance.z = location.z - playerLocation.z;
-
-	if (isDistanceArea == false)
-	{
-		if (distance.x <= 5.0f && distance.x >= -5.0f)
-		{
-			if (distance.z <= 5.0f && distance.z >= -5.0f)
-			{
-				isDistanceArea = true;
-				model->SetCurrentAnimation(combatReadyPath);
-			}
-		}
-	}
 
 	model->Update();
 }

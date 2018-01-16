@@ -7,10 +7,11 @@
 #define MoveDegree fPI/18.0f // 캐릭터의 회전각에 따른 속도
 
 Player::Player()
+	: moveSpeed(100.0f)
 {
-	className = L"Player";
 	wstring filePath = L"./Contents/Models/";
-	wstring animationPath = filePath + L"Sword and Shield Pack/";
+	animationPath = filePath + L"Sword and Shield Pack/";
+	weaponPath = filePath + L"Weapon/";
 
 	tPosePath = animationPath + L"paladin_prop_j_nordstrom.fbx";
 	idlePath = animationPath + L"sword and shield idle.fbx";
@@ -25,8 +26,9 @@ Player::Player()
 	model->SetRootFilePath(animationPath);
 
 	model->LoadScene(tPosePath, true, true, true, false);
+
 	model->LoadScene(idlePath, false, false, false, true);
-	model->LoadScene(runPath, false, false, false, true);
+	model->LoadScene(runPath, false, false, false, true, true);
 	model->LoadScene(attackPath, false, false, false, true);
 	model->LoadScene(jumpPath, false, false, false, true);
 
@@ -58,6 +60,12 @@ void Player::Update()
 	// 카메라가 따라다니게 만듬
 	Camera::Get()->SetPlayerLocation(location);
 
+	if (KEYBOARD->KeyDown('1'))
+	{
+		bool isSwap = model->SetChangeWeapon(weaponPath + L"SK_Blade_BlackKnight.fbx");
+		model->LoadScene(weaponPath + L"SK_Blade_BlackKnight.fbx", true, false, true, false, false);
+	}
+
 	// W 누르면 캐릭터가 앞으로 움직이는 애니메이션 동작
 	if (isAttack == false)
 	{
@@ -86,7 +94,7 @@ void Player::Update()
 					// 범위 지정 후 값 고정(떨림 방지)
 					if (rotationAngle <= MoveDegree && rotationAngle >= 0.0f - MoveDegree)
 						rotationAngle = 0.0f;
-					location.z++;
+					location.z = location.z + (moveSpeed * Frames::Get()->TimeElapsed());
 				}
 				else if (KEYBOARD->KeyPress('S'))
 				{
@@ -98,7 +106,7 @@ void Player::Update()
 					// 범위 지정 후 값 고정(떨림 방지)
 					if (rotationAngle <= fPI + MoveDegree && rotationAngle >= fPI - MoveDegree)
 						rotationAngle = fPI;
-					location.z--;
+					location.z = location.z - (moveSpeed * Frames::Get()->TimeElapsed());
 				}
 			}
 			// Right, Left
@@ -123,7 +131,7 @@ void Player::Update()
 					// 범위 지정 후 값 고정(떨림 방지)
 					if (rotationAngle <= fPI / 2.0f + MoveDegree && rotationAngle >= fPI / 2.0f - MoveDegree)
 						rotationAngle = fPI / 2.0f;
-					location.x++;
+					location.x = location.x + (moveSpeed * Frames::Get()->TimeElapsed());
 				}
 				else if (KEYBOARD->KeyPress('A'))
 				{
@@ -133,7 +141,7 @@ void Player::Update()
 					// 범위 지정 후 값 고정(떨림 방지)
 					if (rotationAngle <= 3.0f * fPI / 2.0f + MoveDegree && rotationAngle >= 3.0f * fPI / 2.0f - MoveDegree)
 						rotationAngle = 3.0f * fPI / 2.0f;
-					location.x--;
+					location.x = location.x - (moveSpeed * Frames::Get()->TimeElapsed());
 				}
 			}
 		}
@@ -173,9 +181,6 @@ void Player::Update()
 		D3DXMatrixTranslation(&matTranslation, location.x, location.y, location.z);
 
 		world = matRotation * matTranslation;
-
-		// 상속받은 클래스로 위치를 보내준다.
-		SetLocation(className, location);
 
 		colBox->SetWorldMatrix(world);
 		model->SetWorldTransform(world);
