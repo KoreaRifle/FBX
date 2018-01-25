@@ -2,38 +2,62 @@
 #include "CollisionBox.h"
 
 //TODO 캐릭터 크기만큼 콜리전 박스를 생성해야함
-CollisionBox::CollisionBox(D3DXVECTOR3 minValue, D3DXVECTOR3 maxValue)
+//? radius 값에 0.25를 곱해야 정상적으로 출력되는데 왜 그렇게 나오는질 모르겠음
+CollisionBox::CollisionBox()
 	: Shader(L"./Character/Character.fx")
 {
-	forceScale = 0.1f;
+	//minCoord = minValue;
+	//maxCoord = maxValue;
+	//
+	//centerCircle = (minCoord + ((maxCoord - minCoord) * 0.5f));
+	//
+	//float x = maxCoord.x - minCoord.x;
+	//float y = maxCoord.y - minCoord.y;
+	//float z = maxCoord.z - minCoord.z;
 
-	minCoord = minValue;
-	maxCoord = maxValue;
-	
-	centerCircle = minCoord + ((maxCoord - minCoord) * 0.5f);
-	
-	float x = maxCoord.x - minCoord.x;
-	float y = maxCoord.y - minCoord.y;
-	float z = maxCoord.z - minCoord.z;
+	//// hypotenuse를 구하기 위한 삼각형의 width, height 계산
+	//// tempWidth는 x,y 좌표를 피타고라스 식을 통해 계산
+	//float tempWidth = sqrt((x * x) + (z * z));
+	//float tempHeight = y;
 
-	// hypotenuse를 구하기 위한 삼각형의 width, height 계산
-	// tempWidth는 x,y 좌표를 피타고라스 식을 통해 계산
-	float tempWidth = sqrt((x * x) + (y * y));
-	float tempHeight = y;
+	//// hypotenuse : minCoord와 maxCoord 사이의 거리값
+	//hypotenuse = sqrt((tempWidth * tempWidth) + (tempHeight * tempHeight));
 
-	// hypotenuse : minCoord와 maxCoord 사이의 거리값
-	hypotenuse = sqrt((tempWidth * tempWidth) + (y * y));
+	//CreateBuffer();
+	//CreateInputLayout(VertexColor::desc, VertexColor::count);
 
-	CreateBuffer();
-	CreateInputLayout(VertexColor::desc, VertexColor::count);
-
-	D3DXMatrixIdentity(&world);
+	//D3DXMatrixIdentity(&world);
 }
 
 CollisionBox::~CollisionBox()
 {
 	SAFE_RELEASE(vertexBuffer);
 	SAFE_RELEASE(indexBuffer);
+}
+
+void CollisionBox::CalcCollider(D3DXVECTOR3 minValue, D3DXVECTOR3 maxValue)
+{
+	minCoord = minValue;
+	maxCoord = maxValue;
+
+	centerCircle = (minCoord + ((maxCoord - minCoord) * 0.5f));
+
+	float x = maxCoord.x - minCoord.x;
+	float y = maxCoord.y - minCoord.y;
+	float z = maxCoord.z - minCoord.z;
+
+	// hypotenuse를 구하기 위한 삼각형의 width, height 계산
+	// tempWidth는 x,y 좌표를 피타고라스 식을 통해 계산
+	float tempWidth = sqrt((x * x) + (z * z));
+	float tempHeight = y;
+
+	// hypotenuse : minCoord와 maxCoord 사이의 거리값
+	hypotenuse = sqrt((tempWidth * tempWidth) + (tempHeight * tempHeight));
+
+	CreateBuffer();
+	CreateInputLayout(VertexColor::desc, VertexColor::count);
+
+	D3DXMatrixIdentity(&world);
 }
 
 void CollisionBox::Update()
@@ -61,7 +85,12 @@ void CollisionBox::Render()
 
 void CollisionBox::CreateBuffer()
 {
-	radius = hypotenuse * 0.5f * forceScale;
+	float circleForceScale;
+	/*if (forceScale < 1.0f) circleForceScale = forceScale * 0.5f;
+	else circleForceScale = forceScale;*/
+
+	//radius = hypotenuse * 0.5f * circleForceScale;
+	radius = hypotenuse * 0.25f;
 
 	HRESULT hr;
 
@@ -89,9 +118,12 @@ void CollisionBox::CreateBuffer()
 		if (i < axisX)
 		{
 			curRadian = prevRadian + (2.0f * (float)D3DX_PI / axisCount);
-			vertex[i].position.x = centerCircle.x * forceScale;
-			//vertex[i].position.x = centerCircle.x;
-			vertex[i].position.y = sinf(curRadian) * radius;
+			/*vertex[i].position.x = centerCircle.x * forceScale;
+			vertex[i].position.y = (centerCircle.y * forceScale) + sinf(curRadian) * radius;
+			vertex[i].position.z = cosf(curRadian) * radius;*/
+
+			vertex[i].position.x = centerCircle.x;
+			vertex[i].position.y = (centerCircle.y) + sinf(curRadian) * radius;
 			vertex[i].position.z = cosf(curRadian) * radius;
 			prevRadian = curRadian;
 		}
@@ -101,9 +133,12 @@ void CollisionBox::CreateBuffer()
 		if (i >= axisX && i < axisY)
 		{
 			curRadian = prevRadian + (2.0f * (float)D3DX_PI / axisCount);
-			vertex[i].position.x = cosf(curRadian) * radius;
+			/*vertex[i].position.x = cosf(curRadian) * radius;
 			vertex[i].position.y = centerCircle.y * forceScale;
-			//vertex[i].position.y = centerCircle.y;
+			vertex[i].position.z = sinf(curRadian) * radius;*/
+
+			vertex[i].position.x = cosf(curRadian) * radius;
+			vertex[i].position.y = centerCircle.y;
 			vertex[i].position.z = sinf(curRadian) * radius;
 			prevRadian = curRadian;
 		}
@@ -113,14 +148,17 @@ void CollisionBox::CreateBuffer()
 		if (i >= axisY && i < axisZ)
 		{
 			curRadian = prevRadian + (2.0f * (float)D3DX_PI / axisCount);
+			/*vertex[i].position.x = cosf(curRadian) * radius;
+			vertex[i].position.y = (centerCircle.y * forceScale) + sinf(curRadian) * radius;
+			vertex[i].position.z = centerCircle.z * forceScale;*/
+
 			vertex[i].position.x = cosf(curRadian) * radius;
-			vertex[i].position.y = sinf(curRadian) * radius;
-			vertex[i].position.z = centerCircle.z * forceScale;
-			//vertex[i].position.z = centerCircle.z;
+			vertex[i].position.y = centerCircle.y + sinf(curRadian) * radius;
+			vertex[i].position.z = centerCircle.z;
 			prevRadian = curRadian;
 		}
 		
-		vertex[i].color = 0xFFFF0000;
+		vertex[i].color = 0xFF00FF00;
 	}
 
 	index = new UINT[indexCount];
@@ -142,7 +180,6 @@ void CollisionBox::CreateBuffer()
 		else if (i >= axisY && i < axisZ)
 		{
 			index[2 * i] = i;
-			//index[2 * i + 1] = i + 1;
 			if (i != axisZ - 1) index[2 * i + 1] = i + 1;
 			else index[2 * i + 1] = axisY;
 		}

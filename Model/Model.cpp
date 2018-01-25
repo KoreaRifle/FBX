@@ -143,6 +143,41 @@ void Model::SetBinaryFile(BinaryReader * br)
 	}
 }
 
+void Model::GetBinaryVector(D3DXVECTOR3 * vecPos, D3DXVECTOR3 * vecNormal, D3DXVECTOR2 * vecUv)
+{
+	D3DXVECTOR3 tempVecPos, tempVecNormal;
+	D3DXVECTOR2 tempVecUv;
+	/*for each(ModelPart* part in parts)
+		part->GetBinaryVector(&tempVecPos, &tempVecNormal, &tempVecUv);*/
+
+	//TODO 이걸로 바이너리...
+	/*bool isNew = true;
+
+	ModelPart* part = NULL;
+	for (size_t i = 0; i < parts.size(); i++)
+	{
+		part = parts[i];
+
+		if (material == part->GetMaterial())
+		{
+			part->AddVertex(position, normal, uv, boneWeights);
+			isNew = false;
+		}
+	}
+
+	if (isNew == true)
+	{
+		part = new ModelPart(this, material, modelBuffer);
+		part->AddVertex(position, normal, uv, boneWeights);
+
+		parts.push_back(part);
+	}*/
+
+	*vecPos = tempVecPos;
+	*vecNormal = tempVecNormal;
+	*vecUv = tempVecUv;
+}
+
 void Model::UpdateAnimation(ModelAnimationController * animationController)
 {
 	if (animationController != NULL)

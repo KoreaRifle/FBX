@@ -37,4 +37,7 @@ private:
 	D3DXMATRIX* boneAnimationTransforms;
 	 
 	int boneCount;
+
+public:
+	D3DXMATRIX GetMatrixByBoneIndex(int index);
 };

@@ -10,15 +10,15 @@ public:
 		//TODO ModelBuffer에서 크기값을 강제로 줄이지 않고 ModelPart에서 줄일 수 있을까?
 		//? ModelBuffer에서 강제조정한 크기에 대한 매트릭스를 받아 Min/Max를 구한다.
 		D3DXMatrixIdentity(&data.boneScale);
-		boneScale = 0.1f;
+		//boneScale = 0.1f;
 
-		UserInterface::Get()->SetFbxModelScale(boneScale);
-		UserInterface::Get()->AddFbxModelScale(&boneScale);
+		//UserInterface::Get()->SetFbxModelScale(boneScale);
+		//UserInterface::Get()->AddFbxModelScale(&boneScale);
 		
 		for(int i = 0; i < 100; i++)
 			D3DXMatrixIdentity(&data.boneArray[i]);
 
-		D3DXMatrixScaling(&data.boneScale, boneScale, boneScale, boneScale);
+		//D3DXMatrixScaling(&data.boneScale, boneScale, boneScale, boneScale);
 
 		data.isSkinning = false;
 	}

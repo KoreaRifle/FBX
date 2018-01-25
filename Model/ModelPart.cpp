@@ -5,6 +5,7 @@
 #include "ModelBoneWeights.h"
 #include "ModelBuffer.h"
 
+UINT ModelPart::count = 0;
 ModelPart::ModelPart(Model* model, ModelMaterial* material, ModelBuffer* modelBuffer)
 	: Shader(L"./Model/Model.fx")
 	, model(model), material(material), modelBuffer(modelBuffer)
@@ -75,6 +76,64 @@ void ModelPart::AddVertex(D3DXVECTOR3 & position, D3DXVECTOR3 & normal, D3DXVECT
 		isSkinnedModel = true;
 }
 
+//? CreateBuffer 원본
+//void ModelPart::CreateBuffer()
+//{
+//	vertexCount = positions.size();
+//	indexCount = indices.size();
+//
+//	vertex = new VertexTextureNormalBlend[vertexCount];
+//	for (UINT i = 0; i < vertexCount; i++)
+//	{
+//		vertex[i].position = positions[i];
+//		vertex[i].normal = normals[i];
+//		vertex[i].uv = uvs[i];
+//	}
+//
+//	for (UINT i = 0; i < boneWeights.size(); i++)
+//	{
+//		ModelBlendWeights weight = boneWeights[i].GetBlendWeights();
+//		vertex[i].blendIndices = weight.BlendIndices;
+//		vertex[i].blendWeights = weight.BlendWeights;
+//	}
+//
+//	index = new UINT[indexCount];
+//	for (UINT i = 0; i < indexCount; i++)
+//		index[i] = indices[i];
+//
+//
+//	HRESULT hr;
+//	D3D11_BUFFER_DESC desc;
+//	D3D11_SUBRESOURCE_DATA data;
+//
+//
+//	//1. Vertex Buffer
+//	ZeroMemory(&desc, sizeof(D3D11_BUFFER_DESC));
+//	desc.Usage = D3D11_USAGE_DEFAULT;
+//	desc.ByteWidth = sizeof(VertexTextureNormalBlend) * vertexCount;
+//	desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+//
+//	ZeroMemory(&data, sizeof(D3D11_SUBRESOURCE_DATA));
+//	data.pSysMem = vertex;
+//
+//	hr = D3D::GetDevice()->CreateBuffer(&desc, &data, &vertexBuffer);
+//	assert(SUCCEEDED(hr));
+//
+//
+//	//2. Index Buffer
+//	ZeroMemory(&desc, sizeof(D3D11_BUFFER_DESC));
+//	desc.Usage = D3D11_USAGE_DEFAULT;
+//	desc.ByteWidth = sizeof(UINT) * indexCount;
+//	desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+//
+//	ZeroMemory(&data, sizeof(D3D11_SUBRESOURCE_DATA));
+//	data.pSysMem = index;
+//
+//	hr = D3D::GetDevice()->CreateBuffer(&desc, &data, &indexBuffer);
+//	assert(SUCCEEDED(hr));
+//}
+
+//? CreateBuffer 복제본
 void ModelPart::CreateBuffer()
 {
 	vertexCount = positions.size();
@@ -166,18 +225,22 @@ void ModelPart::SetBinaryFile(BinaryWriter * bw)
 void ModelPart::SetBInaryFile(BinaryReader * br)
 {
 	this->br = br;
+	ReadBinaryFile();
 }
 
 void ModelPart::WriteBinaryFile()
 {
+	/*bw->UInt((UINT)positions.size());
+	bw->UInt((UINT)normals.size());
+	bw->UInt((UINT)uvs.size());*/
+
 	for (size_t i = 0; i < positions.size(); i++)
+	{
 		bw->Vector3(positions[i]);
-	for (size_t i = 0; i < normals.size(); i++)
 		bw->Vector3(normals[i]);
-	for (size_t i = 0; i < uvs.size(); i++)
 		bw->Vector2(uvs[i]);
-	bw->UInt(vertexCount);
-	bw->UInt(indexCount);
+	}
+		
 	bw->Matrix(world);
 	
 	//? 본 정보들도 들어감
@@ -187,9 +250,35 @@ void ModelPart::WriteBinaryFile()
 		bw->Vector4(weight.BlendIndices);
 		bw->Vector4(weight.BlendWeights);
 	}
+	string test = to_string(count);
+	test += ".txt";
+	ofstream fout;
+	fout.open("./Binary/" + test);
+	fout << positions.size() << endl;
+	fout << normals.size() << endl;
+	fout << uvs.size() << endl;
+	for (size_t i = 0; i < positions.size(); i++)
+	{
+		fout << positions[i] << endl;
+		fout << normals[i] << endl;
+		fout << uvs[i] << endl;
+	}
+	fout << endl;
+	count++;
 }
 
 void ModelPart::ReadBinaryFile()
 {
+	size_t positionsSize = (size_t)br->UInt();
+	size_t normalsSize = (size_t)br->UInt();
+	size_t uvsSize = (size_t)br->UInt();
+
 	positions.push_back(br->Vector3());
+}
+
+void ModelPart::GetBinaryVector(D3DXVECTOR3 * vecPos, D3DXVECTOR3 * vecNormal, D3DXVECTOR2 * vecUv)
+{
+	*vecPos = br->Vector3();
+	*vecNormal = br->Vector3();
+	*vecUv = br->Vector2();
 }

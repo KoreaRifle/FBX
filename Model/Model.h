@@ -77,4 +77,6 @@ private:
 public:
 	void SetBinaryFile(BinaryWriter* bw);
 	void SetBinaryFile(BinaryReader* br);
+
+	void GetBinaryVector(D3DXVECTOR3* vecPos, D3DXVECTOR3* vecNormal, D3DXVECTOR2* vecUv);
 };

@@ -46,8 +46,6 @@ ModelScene::ModelScene()
 
 	isRootBoneLock = true;
 	swordName = L"Paladin_J_Nordstrom_Sword";
-	bw = new BinaryWriter();
-	br = new BinaryReader();
 }
 
 ModelScene::~ModelScene()
@@ -123,16 +121,19 @@ void ModelScene::Render()
 // 
 void ModelScene::LoadScene(wstring file, bool isMaterial, bool isSkeleton, bool isMesh, bool isAnimation, bool isRootBoneLock)
 {
-	wstring test1;
-	String::SplitFilePath(file, NULL, &test1);
-	String::Replace(&test1, L"fbx", L"bin");
+	bw = new BinaryWriter();
+	br = new BinaryReader();
 
-	//// 최초에 파일을 그대로 읽어오고 존재하면 아래 모델 생성을 뛰어넘는다.
-	//wstring brPath = file;
-	//String::Replace(&brPath, L"fbx", L"bin");
+	wstring fileName;
+	String::SplitFilePath(file, NULL, &fileName);
+	String::Replace(&fileName, L"fbx", L"bin");
 
-	//br->Open(brPath);
-	//bool isRead = br->Read(test1);
+	brPath = L"./Binary/";
+	brPath += fileName;
+
+	/*isExistFile = false;
+	isExistFile = br->Open(brPath);*/
+	//////////////////////////////////////////////////////////////////
 
 	rootBoneLockVec.push_back(Pair(file, isRootBoneLock));
 	string tempFile = String::WStringToString(file);
@@ -145,11 +146,11 @@ void ModelScene::LoadScene(wstring file, bool isMaterial, bool isSkeleton, bool 
 	// 입출력 세팅
 	/*****************************************************************
 	NOTE : FbxIOSettings 클래스
-		Importer나 Exporter를 만들기 이전에 생성해야하며,
-		Fbx File에 있는 많은 옵션들 중 어떤 것들을 사용할지를
-		설정하는 역할을 하는 클래스.
-		옵션은 ReadXMLFile(), WriteXmlFile(), WriteXmlPropToFile()
-		함수를 통해 XML 파일을 불러들여와 저장할 수 있다.
+	Importer나 Exporter를 만들기 이전에 생성해야하며,
+	Fbx File에 있는 많은 옵션들 중 어떤 것들을 사용할지를
+	설정하는 역할을 하는 클래스.
+	옵션은 ReadXMLFile(), WriteXmlFile(), WriteXmlPropToFile()
+	함수를 통해 XML 파일을 불러들여와 저장할 수 있다.
 	*****************************************************************/
 	ios = FbxIOSettings::Create(manager, IOSROOT);
 	// 안에 텍스쳐가 내장되었을 수도 있다는 것을 세팅함
@@ -160,15 +161,15 @@ void ModelScene::LoadScene(wstring file, bool isMaterial, bool isSkeleton, bool 
 	//임포터 생성
 	/*****************************************************************
 	NOTE : FbxImporter 클래스
-		FbxFile을 SDK 객체로 가져오는 클래스
-	
+	FbxFile을 SDK 객체로 가져오는 클래스
+
 	NOTE : Initialize 함수
-		파일의경로명과 FbxIoSettings 값을 가져와 초기화 작업을 수행,
-		초기화 됬을 경우 true를 반환하고 아닐 경우 false를 반환.
+	파일의경로명과 FbxIoSettings 값을 가져와 초기화 작업을 수행,
+	초기화 됬을 경우 true를 반환하고 아닐 경우 false를 반환.
 
 	NOTE : Import 함수
-		현재 열려있는 파일을 씬으로 가져오는 작업을 수행.
-		작업이 수행될 경우 true를 반환하고 아닐 경우 false를 반환.
+	현재 열려있는 파일을 씬으로 가져오는 작업을 수행.
+	작업이 수행될 경우 true를 반환하고 아닐 경우 false를 반환.
 	*****************************************************************/
 	importer = FbxImporter::Create(manager, "");
 	bool status = importer->Initialize(tempFile.c_str(), -1, ios);
@@ -179,13 +180,25 @@ void ModelScene::LoadScene(wstring file, bool isMaterial, bool isSkeleton, bool 
 
 	ProcessScene(isMaterial, isSkeleton, isMesh, isAnimation, isRootBoneLock);
 
-	bw->Open(test1);
-	for each(Model* model in models)
+	if (isExistFile == false)
 	{
-		model->SetBinaryFile(bw);
+		bw->Open(fileName);
+		for each(Model* model in models)
+		{
+			model->SetBinaryFile(bw);
+		}
+		bw->Close();
 	}
-	bw->Close();
-
+	else
+	{
+		//TODO 여기서 하지말고, 파일이 존재할 경우 ProcessMesh에서 각 값들 넣을 수 있도록
+		//? BinaryReader 클래스에서 메서드를 여러개 만들어야할듯
+		for each(Model* model in models)
+		{
+			model->SetBinaryFile(br);
+		}
+	}
+	br->Close();
 	importer->Destroy();
 }
 
@@ -331,7 +344,7 @@ void ModelScene::ProcessMesh(FbxNode * node)
 
 	
 	Model* model = new Model(String::StringToWString(node->GetName()), modelBuffer);
-	wstring test = String::StringToWString(node->GetName());
+	//wstring test = String::StringToWString(node->GetName());
 
 	FbxVector4* controlPoints = mesh->GetControlPoints();
 	for (int i = 0; i < mesh->GetPolygonCount(); i++)
@@ -349,6 +362,7 @@ void ModelScene::ProcessMesh(FbxNode * node)
 
 			FbxVector4 fbxPos = controlPoints[vertexIndex];
 			FbxVector4 fbxNormal;
+
 			mesh->GetPolygonVertexNormal(i, vi, fbxNormal);
 			fbxNormal.Normalize();
 
@@ -356,6 +370,29 @@ void ModelScene::ProcessMesh(FbxNode * node)
 			D3DXVECTOR3 vecNormal = ModelUtility::ToVector3(fbxNormal);
 			D3DXVECTOR2 vecUv = GetUV(mesh, 0, i, vi, vertexIndex);
 			model->AddVertex(material, vecPos, vecNormal, vecUv, boneWeights[vertexIndex]);
+
+			// 바이너리파일이 없을 경우
+			/*if (isExistFile == false)
+			{
+				D3DXVECTOR3 vecPos = ModelUtility::ToVector3(fbxPos);
+				D3DXVECTOR3 vecNormal = ModelUtility::ToVector3(fbxNormal);
+				D3DXVECTOR2 vecUv = GetUV(mesh, 0, i, vi, vertexIndex);
+				model->AddVertex(material, vecPos, vecNormal, vecUv, boneWeights[vertexIndex]);
+			}*/
+			// 바이너리 파일이 있을 경우
+			//else
+			//{
+			//	isExistFile = false;
+			//	isExistFile = br->Open(brPath);
+
+			//	D3DXVECTOR3 vecPos, vecNormal;
+			//	D3DXVECTOR2 vecUv;
+			//	//? 값이 쓰레기값으로 나옴
+			//	//? Model에서 ModelPart로 각 값을 넘겨주기 전,
+			//	//? AddVertex를 통해 모델파츠가 생성되지 않음
+			//	model->GetBinaryVector(&vecPos, &vecNormal, &vecUv);
+			//	model->AddVertex(material, vecPos, vecNormal, vecUv, boneWeights[vertexIndex]);
+			//}
 		}//for(vi)
 	}//for(i)
 	
@@ -365,6 +402,32 @@ void ModelScene::ProcessMesh(FbxNode * node)
 	model->CreateBuffer();
 
 	models.push_back(model);
+
+	//if (isExistFile == true)
+	//{
+	//	for (int i = 0; i < mesh->GetPolygonCount(); i++)
+	//	{
+	//		ModelMaterial* material = NULL;
+
+	//		for (int vi = 0; vi < 3; vi++)
+	//		{
+	//			int vertexIndex = mesh->GetPolygonVertex(i, vi);
+	//			if (vertexIndex < 0 || vertexIndex >= vertexCount)
+	//				continue;
+
+	//			if (material == NULL)
+	//				material = LinkMaterialWithPolygon(mesh, 0, i, 0, vertexIndex);
+
+	//			D3DXVECTOR3 vecPos, vecNormal;
+	//			D3DXVECTOR2 vecUv;
+	//			//? 값이 쓰레기값으로 나옴
+	//			//? Model에서 ModelPart로 각 값을 넘겨주기 전,
+	//			//? AddVertex를 통해 모델파츠가 생성되지 않음
+	//			model->GetBinaryVector(&vecPos, &vecNormal, &vecUv);
+	//			model->AddVertex(material, vecPos, vecNormal, vecUv, boneWeights[vertexIndex]);
+	//		}
+	//	}
+	//}
 }
 
 void ModelScene::ProcessAnimations(wstring file)
@@ -806,6 +869,7 @@ void ModelScene::GetCollisionBoxMinMaxValue(D3DXVECTOR3 * collisionBoxMin, D3DXV
 
 	for (size_t i = 0; i < models.size(); i++)
 	{
+		float forceScale = UserInterface::Get()->GetFbxModelScale();
 		D3DXVECTOR3 tempModelMinValue, tempModelMaxValue;
 		models[i]->GetCollisionBoxMinMaxValue(&tempModelMinValue, &tempModelMaxValue);
 
@@ -823,22 +887,35 @@ void ModelScene::GetCollisionBoxMinMaxValue(D3DXVECTOR3 * collisionBoxMin, D3DXV
 	*collisionBoxMax = tempMaxValue;
 }
 
-bool ModelScene::SetChangeWeapon(wstring weaponFilePath)
+void ModelScene::SetChangeWeapon(int swapWeaponNumber)
 {
-	//TODO : 검바꾸기
-	
-	//? 변경할 검은 이미 추가된 상태.
-	//? 이 검의 위치를 팔라딘 검의 위치로 바꿔야한다.
 	for each(Model* model in models)
 	{
 		if (model->GetName() == swordName)
 		{
 			//? model이름이 팔라딘검과 같을 때 팔라딘검 업데이트와 랜더를 off시킴
 			model->SetOffTrigger(true);
-			//LoadScene(weaponFilePath, true, false, true, false, true);
-			return true;
 		}
 	}
 
-	return false;
+	if (swapWeaponNumber == 1)
+	{
+		for each(Model* model in models)
+		{
+			if (model->GetName() == swordName)
+			{
+				model->SetOffTrigger(false);
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////
+// 언리얼에서 확인 결과 반환되는 matrix 값은 월드좌표가 넘어간다.
+////////////////////////////////////////////////////////////////////////////
+D3DXMATRIX ModelScene::GetMatrixByBone()
+{
+	int index = skeleton->FindBoneIndex(L"Sword_joint");
+	
+	return skeleton->GetMatrixByBoneIndex(index);
 }

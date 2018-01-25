@@ -62,7 +62,11 @@ public:
 	void WriteBinaryFile();
 	void ReadBinaryFile();
 
+	void GetBinaryVector(D3DXVECTOR3* vecPos, D3DXVECTOR3* vecNormal, D3DXVECTOR2* vecUv);
+
 private:
 	BinaryWriter* bw;
 	BinaryReader* br;
+
+	static UINT count;
 };

@@ -134,6 +134,7 @@ void ModelAnimationController::Update()
 		
 		frameTimer -= invFrameRate;
 	}
+	//TODO currentKeyFrame이 0일때 idle 상태로
 
 	keyFrameFactor = frameTimer / invFrameRate;
 	int a = 0;

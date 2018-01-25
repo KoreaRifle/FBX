@@ -149,3 +149,10 @@ void ModelSkeleton::BuildBoneTransforms(ModelAnimationController * animationCont
 		index++;
 	}
 }
+
+D3DXMATRIX ModelSkeleton::GetMatrixByBoneIndex(int index)
+{
+	ModelSkeletonBone* bone = GetSkeletonBone(index);
+
+	return boneAnimationTransforms[index];
+}

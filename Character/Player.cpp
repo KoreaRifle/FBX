@@ -19,18 +19,25 @@ Player::Player()
 	attackPath = animationPath + L"sword and shield slash.fbx";
 	jumpPath = animationPath + L"sword and shield jump.fbx";
 
-	isMoving = isAttack = isTrigger = false;
+	isMoving = isAttack = isTrigger = isJump = false;
+	isCollider = false;
+	isSwapWeapon = false;
 
 	model = new ModelScene();
+	swordModel = new ModelScene();
 
 	model->SetRootFilePath(animationPath);
 
+	// 캐릭터 모델 로딩
 	model->LoadScene(tPosePath, true, true, true, false);
 
 	model->LoadScene(idlePath, false, false, false, true);
 	model->LoadScene(runPath, false, false, false, true, true);
 	model->LoadScene(attackPath, false, false, false, true);
-	model->LoadScene(jumpPath, false, false, false, true);
+	model->LoadScene(jumpPath, false, false, false, true, true);
+
+	// 무기 모델 로딩
+	swordModel->LoadScene(weaponPath + L"SK_Blade_BlackKnight.fbx", true, false, true, false);
 
 	// Default Animation 설정
 	model->SetCurrentAnimation(idlePath);
@@ -44,14 +51,16 @@ Player::Player()
 	rotationAngle = 0.0f;
 	UserInterface::Get()->AddFbxModelRotate(0, &rotationAngle, 0);
 
-	model->GetCollisionBoxMinMaxValue(&collisionBoxMin, &collisionBoxMax);
-	colBox = new CollisionBox(collisionBoxMin, collisionBoxMax);
-	colBox->SetForceScale(0.1f);
+	//colBox = new CollisionBox(collisionBoxMin, collisionBoxMax, forceScale);
+	colBox = new CollisionBox();
+
+	//matWeapon = model->GetMatrixByBone();
 }
-	
+
 Player::~Player()
 {
 	SAFE_DELETE(colBox);
+	SAFE_DELETE(swordModel);
 	SAFE_DELETE(model);
 }
 
@@ -60,13 +69,8 @@ void Player::Update()
 	// 카메라가 따라다니게 만듬
 	Camera::Get()->SetPlayerLocation(location);
 
-	if (KEYBOARD->KeyDown('1'))
-	{
-		bool isSwap = model->SetChangeWeapon(weaponPath + L"SK_Blade_BlackKnight.fbx");
-		model->LoadScene(weaponPath + L"SK_Blade_BlackKnight.fbx", true, false, true, false, false);
-	}
-
-	// W 누르면 캐릭터가 앞으로 움직이는 애니메이션 동작
+	//TODO 대각선 이동 시 대각선으로 회전되게끔 조정 필요
+	// 플레이어 이동 관련
 	if (isAttack == false)
 	{
 		//? 라디안 각이 0~360도 일때 수행
@@ -162,28 +166,53 @@ void Player::Update()
 		}
 
 		//TODO : 점프 모션 구현
-		//if (KEYBOARD->KeyDown(VK_SPACE))
-		//{
-		//	while (isJump != false)
-		//	{
-		//		isAttack = false;
-		//		model->SetCurrentAnimation(jumpPath);
-
-		//		// TODO : 만약 점프 모션이 다 끝났을 경우 루프 탈출
-
-		//	}
-		//}
+		if (KEYBOARD->KeyDown(VK_SPACE))
+		{
+			if (isJump == false)
+			{
+				isJump = true;
+				model->SetCurrentAnimation(jumpPath);
+			}
+		}
 
 		// 회전 시 D3DXMatrixRotationAxis를 사용해서
 		// 반환행렬(matRotation), 회전축(Y축), 회전각(rotationAngle)을 넣는다.
-		D3DXMATRIX matRotation, matTranslation;
+		//TODO 회전 시 보간 추가
+		D3DXMATRIX matScaling, matRotation, matTranslation;
+		D3DXMatrixScaling(&matScaling, 0.1f, 0.1f, 0.1f);
 		D3DXMatrixRotationAxis(&matRotation, &D3DXVECTOR3(0, 1, 0), rotationAngle);
 		D3DXMatrixTranslation(&matTranslation, location.x, location.y, location.z);
 
-		world = matRotation * matTranslation;
+		world = matScaling * matRotation * matTranslation;
+		model->SetWorldTransform(world);
+
+		if (isCollider == false)
+		{
+			isCollider = true;
+			model->GetCollisionBoxMinMaxValue(&collisionBoxMin, &collisionBoxMax);
+			colBox->CalcCollider(collisionBoxMin, collisionBoxMax);
+		}
 
 		colBox->SetWorldMatrix(world);
-		model->SetWorldTransform(world);
+
+		/////////////////////////////////////////////////////////////////////////
+		/// @brief 무기변경
+		/// @matSword 무기 변경될 Matrix 좌표(월드좌표)
+		/////////////////////////////////////////////////////////////////////////
+		if (KEYBOARD->KeyDown('1'))
+		{
+			isSwapWeapon = false;
+			isSwapWeaponNumber = 1;
+			model->SetChangeWeapon(isSwapWeaponNumber);
+		}
+		else if (KEYBOARD->KeyDown('2'))
+		{
+			matWeapon = model->GetMatrixByBone();
+			swordModel->SetWorldTransform(matWeapon);
+			isSwapWeapon = true;
+			isSwapWeaponNumber = 2;
+			model->SetChangeWeapon(isSwapWeaponNumber);
+		}
 	}
 
 	// 마우스 좌클릭 시 공격하는 애니메이션 동작
@@ -204,10 +233,18 @@ void Player::Update()
 
 	model->Update();
 	colBox->Update();
+	if (isSwapWeapon == true)
+	{
+		matWeapon = model->GetMatrixByBone();
+		matWeapon = matWeapon * world;
+		swordModel->SetWorldTransform(matWeapon);
+		swordModel->Update();
+	}
 }
 
 void Player::Render()
 {
 	model->Render();
 	colBox->Render();
+	if (isSwapWeapon == true) swordModel->Render();
 }

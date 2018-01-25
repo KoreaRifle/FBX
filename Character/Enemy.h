@@ -1,8 +1,7 @@
 #pragma once
 
 class ModelScene;
-//class CollisionBox;
-class Player;
+class CollisionBox;
 class Enemy
 {
 public:
@@ -17,8 +16,9 @@ public:
 
 private:
 	ModelScene* model;
-	//CollisionBox* colBox;
-	Player* player;
+	CollisionBox* colBox;
+
+	bool isCollider;
 
 private:
 	wstring className;
@@ -34,14 +34,19 @@ private:
 
 	D3DXVECTOR3 location;
 	float moveSpeed;
-	float rotationAngle;;
 
 	D3DXVECTOR3 collisionBoxMin, collisionBoxMax;
 
+	float rotationAngle;
+	float prevRotationRange;
+	D3DXVECTOR3 normalDistance;
+	D3DXVECTOR3 distance;
+	D3DXVECTOR3 prevDistance;
+
 private:
-	//Player* player;
 	D3DXVECTOR3 playerLocation;
 
 	bool isDistanceArea;
 	bool isRunTrigger;
+	bool isAttackTrigger;
 };

@@ -86,7 +86,7 @@ public:
 	void SetRootFilePath(wstring rootFilePath) { this->rootFilePath = rootFilePath; }
 	void SetRootBoneLock(bool isRootBoneLock) { this->isRootBoneLock = isRootBoneLock; }
 	void GetCollisionBoxMinMaxValue(D3DXVECTOR3* collisionBoxMin, D3DXVECTOR3* collisionBoxMax);
-	bool SetChangeWeapon(wstring weaponFilePath);
+	void SetChangeWeapon(int swapWeaponNumber);
 
 private:
 	wstring rootFilePath;
@@ -106,4 +106,11 @@ public:
 private:
 	BinaryWriter* bw;
 	BinaryReader* br;
+
+	wstring brPath;
+	bool isExistFile;
+
+// ¸ðµ¨ ½ºÄÌ·¹Åæ °ü·Ã
+public:
+	D3DXMATRIX GetMatrixByBone();
 };
